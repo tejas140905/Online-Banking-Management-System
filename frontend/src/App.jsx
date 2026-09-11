@@ -3,6 +3,9 @@ import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import PlatformPage from "./pages/PlatformPage";
+import SecurityPage from "./pages/SecurityPage";
+import OperationsPage from "./pages/OperationsPage";
 import UserDashboard from "./pages/UserDashboard";
 import TransferPage from "./pages/TransferPage";
 import TransactionsPage from "./pages/TransactionsPage";
@@ -48,6 +51,9 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage auth={authContext} />} />
+      <Route path="/platform" element={<PlatformPage auth={authContext} />} />
+      <Route path="/security" element={<SecurityPage auth={authContext} />} />
+      <Route path="/operations" element={<OperationsPage auth={authContext} />} />
       <Route path="/login" element={<LoginPage auth={authContext} />} />
       <Route path="/register" element={<RegisterPage />} />
 

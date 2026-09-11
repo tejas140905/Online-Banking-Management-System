@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const path = require("path");
 
-dotenv.config({ path: path.join(__dirname, "..", "..", "env.example") });
+dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;

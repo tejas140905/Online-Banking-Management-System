@@ -21,7 +21,7 @@ const AdminApprovals = () => {
   };
 
   return (
-    <div>
+    <div data-testid="admin-approvals">
       <NavBar auth={{ user: { role: "ADMIN" } }} />
       <PageShell
         title="User Approvals"
@@ -51,12 +51,14 @@ const AdminApprovals = () => {
                   <td className="px-4 py-3 space-x-2">
                     <button
                       onClick={() => act(user.id, "approve")}
+                      data-testid={`approve-user-${user.id}`}
                       className="rounded-lg bg-success/20 px-3 py-1 text-xs font-semibold text-success hover:bg-success/30"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => act(user.id, "block")}
+                      data-testid={`block-user-${user.id}`}
                       className="rounded-lg bg-danger/20 px-3 py-1 text-xs font-semibold text-danger hover:bg-danger/30"
                     >
                       Reject

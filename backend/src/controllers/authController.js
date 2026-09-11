@@ -6,7 +6,7 @@ const dotenv = require("dotenv");
 const pool = require("../config/db");
 const { generateAccountNumber } = require("../utils/accountNumber");
 
-dotenv.config({ path: path.join(__dirname, "..", "..", "env.example") });
+dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
 const signToken = (user) =>
   jwt.sign(

@@ -24,7 +24,7 @@ const ProfilePage = ({ auth }) => {
   };
 
   return (
-    <div>
+    <div data-testid="profile-page">
       <NavBar auth={auth} />
       <PageShell
         title="Profile"
@@ -45,10 +45,11 @@ const ProfilePage = ({ auth }) => {
               <div className="text-muted">Role</div>
               <div className="text-white">{profile?.role}</div>
             </div>
-            <form onSubmit={onSubmit} className="space-y-3">
+            <form onSubmit={onSubmit} data-testid="profile-form" className="space-y-3">
               <label className="block text-sm text-slate-200">
                 Full name
                 <input
+                  data-testid="profile-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
@@ -57,6 +58,7 @@ const ProfilePage = ({ auth }) => {
               {message && <div className="text-success">{message}</div>}
               <button
                 type="submit"
+                data-testid="profile-save"
                 className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
               >
                 Save changes

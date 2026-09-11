@@ -19,11 +19,20 @@ const transferFunds = async (req, res, next) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { fromAccount, toAccount, amount } = req.body;
+  const { fromAccount, toAccount, amount: rawAmount } = req.body;
+  // Normalize amount: express-validator ensures gt 0, but coerce string->number
+  // so balance math and MySQL params are strictly numeric.
+  const amount = Number(rawAmount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ message: "Amount must be a positive number" });
+  }
   if (fromAccount === toAccount) {
     return res.status(400).json({ message: "Cannot transfer to the same account" });
   }
 
+  // Atomic money movement: BEGIN -> lock sender (FOR UPDATE) -> validate ->
+  // lock receiver -> debit -> credit -> write txn records -> COMMIT.
+  // Any failure triggers ROLLBACK so balances can never partially update.
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();

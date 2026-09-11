@@ -20,7 +20,7 @@ const TransactionsPage = ({ auth }) => {
   }, []);
 
   return (
-    <div>
+    <div data-testid="transactions-page">
       <NavBar auth={auth} />
       <PageShell
         title="Transaction History"
@@ -31,7 +31,7 @@ const TransactionsPage = ({ auth }) => {
           { label: "Profile", href: "/profile" },
         ]}
       >
-        <div className="glass overflow-x-auto rounded-xl border border-slate-800">
+        <div data-testid="transactions-table" className="glass overflow-x-auto rounded-xl border border-slate-800">
           <table className="min-w-full divide-y divide-slate-800 text-sm">
             <thead className="bg-secondary text-slate-300">
               <tr>

@@ -3,8 +3,10 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
+const path = require("path");
 
-dotenv.config({ path: require("path").join(__dirname, "..", "..", "env.example") });
+dotenv.config();
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -15,7 +17,11 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173,http://localhost:4173")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 app.use(morgan("dev"));
 

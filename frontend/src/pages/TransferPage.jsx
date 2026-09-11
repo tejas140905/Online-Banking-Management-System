@@ -47,11 +47,12 @@ const TransferPage = ({ auth }) => {
         ]}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <form onSubmit={onSubmit} className="glass rounded-xl border border-slate-800 p-6">
+          <form onSubmit={onSubmit} data-testid="transfer-form" className="glass rounded-xl border border-slate-800 p-6">
             <div className="space-y-4">
               <label className="block text-sm text-slate-200">
                 From account
                 <select
+                  data-testid="transfer-from"
                   value={form.fromAccount}
                   onChange={(e) => setForm({ ...form, fromAccount: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
@@ -68,6 +69,7 @@ const TransferPage = ({ auth }) => {
               <label className="block text-sm text-slate-200">
                 To account
                 <input
+                  data-testid="transfer-to"
                   value={form.toAccount}
                   onChange={(e) => setForm({ ...form, toAccount: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
@@ -80,16 +82,18 @@ const TransferPage = ({ auth }) => {
                 <input
                   type="number"
                   min="0"
+                  data-testid="transfer-amount"
                   value={form.amount}
                   onChange={(e) => setForm({ ...form, amount: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
                   required
                 />
               </label>
-              {message && <div className="text-sm text-success">{message}</div>}
-              {error && <div className="text-sm text-danger">{error}</div>}
+              {message && <div data-testid="transfer-success" className="text-sm text-success">{message}</div>}
+              {error && <div data-testid="transfer-error" className="text-sm text-danger">{error}</div>}
               <button
                 type="submit"
+                data-testid="transfer-submit"
                 disabled={loading}
                 className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface hover:bg-sky-400 disabled:opacity-70"
               >

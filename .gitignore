@@ -56,6 +56,8 @@ lerna-debug.log*
 coverage/
 .nyc_output/
 *.lcov
+test-results/
+playwright-report/
 
 # Temporary files
 *.tmp

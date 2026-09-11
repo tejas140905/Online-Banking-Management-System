@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 const NavBar = ({ auth }) => {
   return (
     <header className="sticky top-0 z-10 border-b border-slate-800 bg-surface/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-white">
           <span className="rounded bg-accent px-2 py-1 text-sm font-bold text-surface">APEX</span>
           <span>Digital Bank</span>
         </Link>
-        <nav className="flex items-center gap-4 text-sm text-slate-200">
+        <nav className="flex flex-wrap items-center gap-4 text-sm text-slate-200">
           <Link to="/" className="hover:text-accent">
             Home
           </Link>
@@ -24,6 +24,7 @@ const NavBar = ({ auth }) => {
               )}
               <button
                 onClick={auth.logout}
+                data-testid="logout-button"
                 className="rounded border border-slate-700 px-3 py-1 hover:border-accent hover:text-accent"
               >
                 Logout
@@ -31,6 +32,15 @@ const NavBar = ({ auth }) => {
             </>
           ) : (
             <>
+              <Link to="/platform" className="hover:text-accent">
+                Platform
+              </Link>
+              <Link to="/security" className="hover:text-accent">
+                Security
+              </Link>
+              <Link to="/operations" className="hover:text-accent">
+                Operations
+              </Link>
               <Link to="/login" className="hover:text-accent">
                 Login
               </Link>

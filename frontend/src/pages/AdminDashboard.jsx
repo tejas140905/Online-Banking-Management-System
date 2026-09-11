@@ -17,7 +17,7 @@ const AdminDashboard = () => {
   }, []);
 
   return (
-    <div>
+    <div data-testid="admin-dashboard">
       <NavBar auth={{ user: { role: "ADMIN" } }} />
       <PageShell
         title="Admin Control Center"

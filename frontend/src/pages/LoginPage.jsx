@@ -35,12 +35,13 @@ const LoginPage = ({ auth }) => {
           <h1 className="text-3xl font-semibold text-white">Welcome back</h1>
           <p className="text-sm text-muted">Access your secure banking workspace.</p>
         </div>
-        <form onSubmit={onSubmit} className="glass rounded-xl border border-slate-800 p-6 shadow-xl">
+        <form onSubmit={onSubmit} data-testid="login-form" className="glass rounded-xl border border-slate-800 p-6 shadow-xl">
           <div className="space-y-4">
             <label className="block text-sm text-slate-200">
               Email
               <input
                 type="email"
+                data-testid="login-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white outline-none focus:border-accent"
@@ -51,15 +52,17 @@ const LoginPage = ({ auth }) => {
               Password
               <input
                 type="password"
+                data-testid="login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white outline-none focus:border-accent"
                 required
               />
             </label>
-            {error && <div className="text-sm text-danger">{error}</div>}
+            {error && <div data-testid="login-error" className="text-sm text-danger">{error}</div>}
             <button
               type="submit"
+              data-testid="login-submit"
               disabled={loading}
               className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface hover:bg-sky-400 disabled:opacity-70"
             >

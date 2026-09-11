@@ -26,7 +26,7 @@ const UserDashboard = ({ auth }) => {
   const total = accounts.reduce((sum, acc) => sum + Number(acc.balance || 0), 0);
 
   return (
-    <div>
+    <div data-testid="dashboard">
       <NavBar auth={auth} />
       <PageShell
         title="Customer Workspace"
@@ -53,7 +53,7 @@ const UserDashboard = ({ auth }) => {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="glass rounded-xl border border-slate-800 p-4">
             <div className="mb-3 text-sm font-semibold text-white">Accounts</div>
-            <div className="space-y-3">
+            <div data-testid="accounts-list" className="space-y-3">
               {accounts.map((acc) => (
                 <div
                   key={acc.account_number}
