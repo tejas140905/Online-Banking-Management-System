@@ -42,5 +42,5 @@ CREATE TABLE IF NOT EXISTS admin_logs (
 
 -- Seed a default admin (change password after import)
 INSERT INTO users (name, email, password, role, status)
-VALUES ('Super Admin', 'admin@bank.com', '$2a$10$uT90yKqSXB25tOfvtTDHMe1jG3E2oYk4qAFvBBusZT6FJi1qV0t1e', 'ADMIN', 'ACTIVE')
+VALUES ('Super Admin', 'admin@bank.com', '$2a$10$DUfkFGG3YpsDZvy3kj8I5eCQyzGQ10sCBMWbEcSJw9yUuYnq1r8hy', 'ADMIN', 'ACTIVE')
 ON DUPLICATE KEY UPDATE email=email;
