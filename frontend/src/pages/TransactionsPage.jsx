@@ -77,6 +77,7 @@ const TransactionsPage = ({ auth }) => {
                     <thead className="bg-secondary/50 text-slate-300">
                       <tr>
                         <th className="px-4 py-3 text-left font-medium">Txn ID</th>
+                        <th className="px-4 py-3 text-left font-medium">Name</th>
                         <th className="px-4 py-3 text-left font-medium">Counterparty</th>
                         <th className="px-4 py-3 text-left font-medium">Flow</th>
                         <th className="px-4 py-3 text-left font-medium">Amount</th>
@@ -87,9 +88,13 @@ const TransactionsPage = ({ auth }) => {
                     <tbody className="divide-y divide-slate-800">
                       {txns.map((txn) => {
                         const incoming = txn.to_account === acc.account_number;
+                        const name = incoming
+                          ? txn.from_name || "CREDX Bank"
+                          : txn.to_name || "CREDX Bank";
                         return (
                           <tr key={`${acc.account_number}-${txn.txn_id}`} className="hover:bg-secondary/60">
                             <td className="px-4 py-3 text-slate-200">{txn.txn_id}</td>
+                            <td className="px-4 py-3 font-medium text-white">{name}</td>
                             <td className="px-4 py-3 text-slate-200">
                               {incoming ? txn.from_account : txn.to_account}
                             </td>
@@ -126,7 +131,7 @@ const TransactionsPage = ({ auth }) => {
                       })}
                       {txns.length === 0 && (
                         <tr>
-                          <td className="px-4 py-3 text-muted" colSpan={6}>
+                          <td className="px-4 py-3 text-muted" colSpan={7}>
                             No transactions for this account yet.
                           </td>
                         </tr>

@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   from_account VARCHAR(20) NOT NULL,
   to_account VARCHAR(20) NOT NULL,
   amount DECIMAL(14,2) NOT NULL,
-  type ENUM('CREDIT', 'DEBIT') NOT NULL,
+  type ENUM('CREDIT', 'DEBIT', 'TRANSFER') NOT NULL,
   status ENUM('SUCCESS', 'FAILED') NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_from_account (from_account),

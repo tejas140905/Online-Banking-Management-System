@@ -191,25 +191,38 @@ describe("banking REST API", () => {
       body: JSON.stringify({ fromAccount: "2227100393615", toAccount: "X", amount: 10 }),
     });
     assert.equal(foreign.status, 404);
-    // Admin CAN move his own Bank Main money (Diya returns it: balances restored).
+    // Admin CAN move his own Bank Main money: open a treasury sub-account,
+    // fund it, verify a single TRANSFER row, then unwind with zero drift.
+    const opened = await fetch(`${BASE}/accounts`, {
+      method: "POST",
+      headers: H,
+      body: JSON.stringify({ label: "Test Treasury" }),
+    });
+    assert.equal(opened.status, 201);
+    const { accountNumber } = await json(opened);
     const out = await fetch(`${BASE}/accounts/transfer`, {
       method: "POST",
       headers: H,
-      body: JSON.stringify({ fromAccount: "100000000001", toAccount: "896965152285", amount: 10 }),
+      body: JSON.stringify({ fromAccount: "100000000001", toAccount: accountNumber, amount: 10 }),
     });
     assert.equal(out.status, 200);
-    const diyaLogin = await fetch(`${BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "diya.demo@credx.bank", password: "Demo@123" }),
+    const hist = await fetch(`${BASE}/accounts/transactions?account=${accountNumber}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    const { token: diyaToken } = await json(diyaLogin);
+    const hbody = await json(hist);
+    assert.equal(hbody.transactions.length, 1);
+    assert.equal(hbody.transactions[0].type, "TRANSFER");
     const back = await fetch(`${BASE}/accounts/transfer`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${diyaToken}` },
-      body: JSON.stringify({ fromAccount: "896965152285", toAccount: "100000000001", amount: 10 }),
+      headers: H,
+      body: JSON.stringify({ fromAccount: accountNumber, toAccount: "100000000001", amount: 10 }),
     });
     assert.equal(back.status, 200);
+    const del = await fetch(`${BASE}/accounts/${accountNumber}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    assert.equal(del.status, 200);
   });
 
   it("change-password rejects wrong current password without state change", async (t) => {    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");

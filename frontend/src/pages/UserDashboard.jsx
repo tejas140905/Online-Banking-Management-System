@@ -41,6 +41,22 @@ const UserDashboard = ({ auth }) => {
     setActive(num);
   };
 
+  // Close an account once its balance is zero (server enforces this too).
+  const closeAccount = async (accountNumber, balance) => {
+    if (Number(balance) !== 0) return;
+    if (!window.confirm(`Close account ${accountNumber}? This cannot be undone.`)) return;
+    setMessage(null);
+    try {
+      await api.delete(`/accounts/${accountNumber}`);
+      if (localStorage.getItem("activeAccount") === accountNumber) {
+        localStorage.removeItem("activeAccount");
+      }
+      await fetchAccounts();
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Could not close account");
+    }
+  };
+
   const openAccount = async (e) => {
     e.preventDefault();
     setMessage(null);
@@ -115,6 +131,19 @@ const UserDashboard = ({ auth }) => {
                     <div className="text-right">
                       <div className="text-xs text-muted">Balance</div>
                       <div className="font-semibold text-success">{formatINR(acc.balance)}</div>
+                      {Number(acc.balance) === 0 && (
+                        <button
+                          type="button"
+                          data-testid={`close-account-${acc.account_number}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            closeAccount(acc.account_number, acc.balance);
+                          }}
+                          className="mt-1 text-xs text-danger hover:underline"
+                        >
+                          Close account
+                        </button>
+                      )}
                     </div>
                   </button>
                 );

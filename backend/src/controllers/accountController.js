@@ -101,12 +101,10 @@ const transferFunds = async (req, res, next) => {
       [amount, toAccount],
     );
 
+    // One row per transfer: from, to, amount, and direction are all on the
+    // record, so history never double-counts and In/Out totals stay exact.
     await connection.query(
-      "INSERT INTO transactions (from_account, to_account, amount, type, status) VALUES (?, ?, ?, 'DEBIT', 'SUCCESS')",
-      [fromAccount, toAccount, amount],
-    );
-    await connection.query(
-      "INSERT INTO transactions (from_account, to_account, amount, type, status) VALUES (?, ?, ?, 'CREDIT', 'SUCCESS')",
+      "INSERT INTO transactions (from_account, to_account, amount, type, status) VALUES (?, ?, ?, 'TRANSFER', 'SUCCESS')",
       [fromAccount, toAccount, amount],
     );
 
@@ -173,7 +171,7 @@ const getTransactions = async (req, res, next) => {  // Statement-style listing:
       filters.push("(t.from_account = ? OR t.to_account = ?)");
       params.push(account, account);
     }
-    if (type && ["CREDIT", "DEBIT"].includes(String(type).toUpperCase())) {
+    if (type && ["CREDIT", "DEBIT", "TRANSFER"].includes(String(type).toUpperCase())) {
       filters.push("t.type = ?");
       params.push(String(type).toUpperCase());
     }
@@ -189,15 +187,22 @@ const getTransactions = async (req, res, next) => {  // Statement-style listing:
       filters.push("t.created_at <= ?");
       params.push(to);
     }
-    const base = `FROM transactions t JOIN accounts a ON t.from_account = a.account_number OR t.to_account = a.account_number WHERE ${filters.join(" AND ")}`;
+    const base = `FROM transactions t
+      JOIN accounts a ON t.from_account = a.account_number OR t.to_account = a.account_number
+      LEFT JOIN accounts fa ON fa.account_number = t.from_account
+      LEFT JOIN users fu ON fu.id = fa.user_id
+      LEFT JOIN accounts ta ON ta.account_number = t.to_account
+      LEFT JOIN users tu ON tu.id = ta.user_id
+      WHERE ${filters.join(" AND ")}`;
     // DISTINCT: a self-transfer between two own accounts matches two account
     // rows in the OR join, which would otherwise return the same transaction twice.
+    // Name joins resolve the counterparty holder for the UI's Name column.
     const [[{ total }]] = await pool.query(
       `SELECT COUNT(DISTINCT t.txn_id) AS total ${base}`,
       params,
     );
     const [rows] = await pool.query(
-      `SELECT DISTINCT t.txn_id, t.from_account, t.to_account, t.amount, t.type, t.status, t.created_at ${base} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
+      `SELECT DISTINCT t.txn_id, t.from_account, fu.name AS from_name, t.to_account, tu.name AS to_name, t.amount, t.type, t.status, t.created_at ${base} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
       [...params, limit, offset],
     );
     return res.json({

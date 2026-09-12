@@ -75,8 +75,14 @@ const AdminTransactions = () => {
                 rows.map((row) => (
                   <tr key={row.txn_id} className="hover:bg-secondary/60">
                     <td className="px-4 py-3 text-slate-200">{row.txn_id}</td>
-                    <td className="px-4 py-3 text-slate-200">{row.from_account}</td>
-                    <td className="px-4 py-3 text-slate-200">{row.to_account}</td>
+                    <td className="px-4 py-3 text-slate-200">
+                      <div>{row.from_account}</div>
+                      <div className="text-xs text-muted">{row.from_name || "CREDX Bank"}</div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-200">
+                      <div>{row.to_account}</div>
+                      <div className="text-xs text-muted">{row.to_name || "CREDX Bank"}</div>
+                    </td>
                     <td className="px-4 py-3 font-semibold text-white">{formatINR(row.amount)}</td>
                     <td className="px-4 py-3">
                       <span

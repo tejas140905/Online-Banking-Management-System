@@ -60,7 +60,14 @@ const allAccounts = async (req, res, next) => {
 const monitorTransactions = async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      "SELECT txn_id, from_account, to_account, amount, type, status, created_at FROM transactions ORDER BY created_at DESC LIMIT 200",
+      `SELECT t.txn_id, t.from_account, fu.name AS from_name, t.to_account, tu.name AS to_name,
+              t.amount, t.type, t.status, t.created_at
+       FROM transactions t
+       LEFT JOIN accounts fa ON fa.account_number = t.from_account
+       LEFT JOIN users fu ON fu.id = fa.user_id
+       LEFT JOIN accounts ta ON ta.account_number = t.to_account
+       LEFT JOIN users tu ON tu.id = ta.user_id
+       ORDER BY t.created_at DESC LIMIT 200`,
     );
     return res.json({ transactions: rows });
   } catch (err) {
