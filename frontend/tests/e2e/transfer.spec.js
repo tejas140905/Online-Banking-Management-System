@@ -60,13 +60,14 @@ test.describe("transfer flow", () => {
   });
 
   test("transaction history table renders after login", async ({ page }) => {
-    const email = process.env.E2E_CUSTOMER_EMAIL || "aarav.demo@credx.bank";
-    const password = process.env.E2E_CUSTOMER_PASSWORD || "Demo@123";
+    const email = process.env.E2E_USER_EMAIL;
+    const password = process.env.E2E_USER_PASSWORD;
+    test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the live history test");
     await page.goto("/login");
     await page.getByTestId("login-email").fill(email);
     await page.getByTestId("login-password").fill(password);
     await page.getByTestId("login-submit").click();
-    await expect(page.getByTestId("dashboard")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("admin-dashboard")).toBeVisible({ timeout: 15000 });
     await page.goto("/transactions");
     await expect(page.getByTestId("transactions-page")).toBeVisible();
     await expect(page.getByTestId("transactions-accounts")).toBeVisible();
