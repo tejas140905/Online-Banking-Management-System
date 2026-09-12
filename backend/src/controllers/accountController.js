@@ -162,9 +162,14 @@ const getTransactions = async (req, res, next) => {
       params.push(to);
     }
     const base = `FROM transactions t JOIN accounts a ON t.from_account = a.account_number OR t.to_account = a.account_number WHERE ${filters.join(" AND ")}`;
-    const [[{ total }]] = await pool.query(`SELECT COUNT(*) AS total ${base}`, params);
+    // DISTINCT: a self-transfer between two own accounts matches two account
+    // rows in the OR join, which would otherwise return the same transaction twice.
+    const [[{ total }]] = await pool.query(
+      `SELECT COUNT(DISTINCT t.txn_id) AS total ${base}`,
+      params,
+    );
     const [rows] = await pool.query(
-      `SELECT t.txn_id, t.from_account, t.to_account, t.amount, t.type, t.status, t.created_at ${base} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
+      `SELECT DISTINCT t.txn_id, t.from_account, t.to_account, t.amount, t.type, t.status, t.created_at ${base} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
       [...params, limit, offset],
     );
     return res.json({
