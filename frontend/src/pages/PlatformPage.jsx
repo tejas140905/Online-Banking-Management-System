@@ -14,7 +14,7 @@ const PlatformPage = ({ auth }) => {
       auth={auth}
       eyebrow="Product platform"
       title="A banking workspace designed like modern software."
-      description="Apex brings onboarding, fund movement, approvals, and reporting into one product surface so teams move faster with less operational drag."
+      description="Credx brings onboarding, fund movement, approvals, and reporting into one product surface so teams move faster with less operational drag."
       actions={
         <>
           <Link

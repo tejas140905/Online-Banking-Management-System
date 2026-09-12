@@ -22,7 +22,7 @@ const OperationsPage = ({ auth }) => {
       auth={auth}
       eyebrow="Operations"
       title="Built for the people who run the bank, not only the customers."
-      description="Apex pairs customer self-service with operator tooling so the product feels like real internal software instead of a static banking demo."
+      description="Credx pairs customer self-service with operator tooling so the product feels like real internal software instead of a static banking demo."
       actions={
         <>
           <Link

@@ -52,7 +52,7 @@ const PublicPageLayout = ({ auth, eyebrow, title, description, actions, children
       </main>
       <footer className="border-t border-slate-800 bg-slate-950/40">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
-          <div>Apex Digital Bank Platform</div>
+          <div>Credx Digital Banking Platform</div>
           <div className="flex flex-wrap gap-4">
             <Link to="/platform" className="hover:text-accent">
               Platform
