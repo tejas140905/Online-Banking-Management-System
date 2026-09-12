@@ -24,6 +24,16 @@ const Protected = ({ children, role }) => {
   return children;
 };
 
+// Bank homepage is for guests only: signed-in users only ever see their own
+// data, so they are routed straight to their workspace (admins to /admin).
+const LandingRoute = () => {
+  const token = localStorage.getItem("token");
+  const user = token ? JSON.parse(localStorage.getItem("user") || "{}") : null;
+  if (token && user?.role === "ADMIN") return <Navigate to="/admin" replace />;
+  if (token) return <Navigate to="/dashboard" replace />;
+  return <HomePage />;
+};
+
 function App() {
   const [user, setUser] = useState(null);
 
@@ -51,7 +61,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage auth={authContext} />} />
+      <Route path="/" element={<LandingRoute />} />
       <Route path="/platform" element={<PlatformPage auth={authContext} />} />
       <Route path="/security" element={<SecurityPage auth={authContext} />} />
       <Route path="/operations" element={<OperationsPage auth={authContext} />} />

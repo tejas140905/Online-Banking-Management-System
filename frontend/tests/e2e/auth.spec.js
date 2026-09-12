@@ -42,6 +42,24 @@ test.describe("auth flow", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
+  test("signed-in users never see the bank homepage", async ({ page }) => {
+    // Customer session → own dashboard, not marketing content.
+    await page.goto("/login");
+    await page.evaluate(() => {
+      localStorage.setItem("token", "e2e-placeholder-token");
+      localStorage.setItem("user", JSON.stringify({ role: "USER", name: "E2E" }));
+    });
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByTestId("dashboard")).toBeVisible();
+    // Admin session → admin console.
+    await page.evaluate(() => {
+      localStorage.setItem("user", JSON.stringify({ role: "ADMIN", name: "E2E" }));
+    });
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/admin/);
+  });
+
   test("logout clears auth state and guards the dashboard", async ({ page }) => {
     // Seed a (possibly expired) session directly in browser storage.
     await page.goto("/login");
