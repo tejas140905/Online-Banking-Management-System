@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const pool = require("../config/db");
+const { audit } = require("../utils/audit");
 
 const getAccounts = async (req, res, next) => {
   try {
@@ -78,6 +79,7 @@ const transferFunds = async (req, res, next) => {
     );
 
     await connection.commit();
+    await audit(req.user.id, `transfer ${amount} from ${fromAccount} to ${toAccount}`);
     return res.json({ message: "Transfer successful" });
   } catch (err) {
     await connection.rollback();

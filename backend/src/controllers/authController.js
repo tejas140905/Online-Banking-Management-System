@@ -6,6 +6,7 @@ const path = require("path");
 const dotenv = require("dotenv");
 const pool = require("../config/db");
 const { generateAccountNumber } = require("../utils/accountNumber");
+const { audit } = require("../utils/audit");
 
 dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
@@ -61,6 +62,7 @@ const register = async (req, res, next) => {
         [userId, accountNumber, 0],
       );
       await connection.commit();
+      await audit(userId, `register ${email}`);
       return res.status(201).json({
         message: "Registration submitted. Await admin approval.",
         accountNumber,
@@ -102,6 +104,7 @@ const login = async (req, res, next) => {
     }
     const token = signToken(user);
     const refreshToken = await issueRefreshToken(user.id);
+    await audit(user.id, "login");
     return res.json({
       token,
       refreshToken,

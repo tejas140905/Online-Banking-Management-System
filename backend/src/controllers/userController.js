@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 const pool = require("../config/db");
+const { audit } = require("../utils/audit");
 
 const getProfile = async (req, res, next) => {
   try {
@@ -29,6 +30,7 @@ const updateProfile = async (req, res, next) => {
   const { name } = req.body;
   try {
     await pool.query("UPDATE users SET name = ? WHERE id = ?", [name, req.user.id]);
+    await audit(req.user.id, "update profile");
     return res.json({ message: "Profile updated" });
   } catch (err) {
     return next(err);
@@ -54,6 +56,7 @@ const changePassword = async (req, res, next) => {
     await pool.query("UPDATE users SET password = ? WHERE id = ?", [hashed, req.user.id]);
     // Invalidate all refresh tokens so other sessions must sign in again.
     await pool.query("UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?", [req.user.id]);
+    await audit(req.user.id, "change password");
     return res.json({ message: "Password changed. Please sign in again." });
   } catch (err) {
     return next(err);

@@ -1,9 +1,6 @@
 const { validationResult } = require("express-validator");
 const pool = require("../config/db");
-
-// Every admin action is written to admin_logs for auditability.
-const audit = (adminId, action) =>
-  pool.query("INSERT INTO admin_logs (admin_id, action) VALUES (?, ?)", [adminId, action]);
+const { audit } = require("../utils/audit");
 
 const getPendingUsers = async (req, res, next) => {
   try {
