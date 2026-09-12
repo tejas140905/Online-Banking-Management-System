@@ -65,18 +65,6 @@ const TransferPage = ({ auth }) => {
         ]}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {auth.user?.role === "ADMIN" ? (
-            <div
-              data-testid="transfer-view-only"
-              className="glass rounded-xl border border-slate-800 p-6"
-            >
-              <h3 className="text-lg font-semibold text-white">View-only access</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Admin accounts cannot move currency. Monitor all transfers under Admin →
-                Transactions.
-              </p>
-            </div>
-          ) : (
           <form onSubmit={onSubmit} data-testid="transfer-form" className="glass rounded-xl border border-slate-800 p-6">
             <div className="mb-4 flex gap-2">
               <button
@@ -181,7 +169,6 @@ const TransferPage = ({ auth }) => {
               </button>
             </div>
           </form>
-          )}
           <div className="glass rounded-xl border border-slate-800 p-6">
             <h3 className="text-lg font-semibold text-white">Transfer checklist</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-300">

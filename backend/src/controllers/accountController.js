@@ -15,14 +15,9 @@ const getAccounts = async (req, res, next) => {
   }
 };
 
-// Admin accounts are strictly view-only: full visibility, zero currency movement.
-const denyAdminCurrency = (req, res) => {
-  if (req.user.role === "ADMIN") {
-    res.status(403).json({ message: "Admin accounts are view-only. Currency operations are disabled." });
-    return true;
-  }
-  return false;
-};
+// Owner model: the admin can move his own (Bank Main) money freely, but every
+// currency endpoint below scopes the source account with `AND user_id = ?`,
+// so no one — admin included — can ever transact from another user's account.
 
 // Open an additional account for the signed-in user (multi-account support).
 // Retries on the rare random account-number collision.
@@ -31,7 +26,6 @@ const createAccount = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
-  if (denyAdminCurrency(req, res)) return undefined;
   const label = (req.body?.label || "").trim() || null;
   try {
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -59,7 +53,6 @@ const transferFunds = async (req, res, next) => {
   }
 
   const { fromAccount, toAccount, amount: rawAmount } = req.body;
-  if (denyAdminCurrency(req, res)) return undefined;
   // Normalize amount: express-validator ensures gt 0, but coerce string->number
   // so balance math and MySQL params are strictly numeric.
   const amount = Number(rawAmount);
@@ -143,7 +136,6 @@ const transferFunds = async (req, res, next) => {
 
 // Close an empty own account (zero balance only — never destroys money).
 const closeAccount = async (req, res, next) => {
-  if (denyAdminCurrency(req, res)) return undefined;
   const { accountNumber } = req.params;
   if (!accountNumber) {
     return res.status(400).json({ message: "Account number required" });

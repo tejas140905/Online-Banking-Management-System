@@ -21,9 +21,10 @@ Customers register, get approved by an admin, then sign in to view accounts, tra
 ### Admin
 
 * Bank Main treasury account (single admin account holding bank funds)
+* Owner powers: full access to his own Bank Main money (fund users, move treasury funds)
+* View-only on customer profiles and their details — can never transact from a user's account (enforced by ownership check on every currency endpoint)
 * Pending-user approvals (approve / block / unblock) with audit logging
 * Full visibility: all customer accounts, operations, transactions, audit logs
-* Strictly view-only: admin cannot move currency (transfers/open/close return 403)
 * Account monitoring
 * Transaction monitoring
 * Audit-log viewer
@@ -80,9 +81,9 @@ React form → client check → POST /api/accounts/transfer
 | PUT | `/api/user/profile` | User | Update name |
 | PUT | `/api/user/password` | User | Change password (revokes other sessions) |
 | GET | `/api/accounts` | User | List own accounts (with labels) |
-| POST | `/api/accounts` | User | Open an additional named account (admin: 403 view-only) |
+| POST | `/api/accounts` | User | Open an additional named account |
 | DELETE | `/api/accounts/:accountNumber` | User | Close an empty own account |
-| POST | `/api/accounts/transfer` | User | Atomic fund transfer (admin: 403 view-only) |
+| POST | `/api/accounts/transfer` | User | Atomic fund transfer (source must belong to caller) |
 | GET | `/api/accounts/transactions` | User | History + filters (`account,type,status,from,to`) + pagination (`page,limit`) |
 | GET | `/api/admin/users/pending` | Admin | Pending approvals |
 | POST | `/api/admin/users/:userId/approve` | Admin | Approve user |
@@ -163,7 +164,7 @@ Demo: register a customer → sign in as `admin@bank.com` / `Admin@123` → appr
 
 Demo profiles (multi-account showcase): `cd backend && npm run seed:demo` creates ACTIVE logins `aarav.demo@credx.bank` / `Diya Patel` (password `Demo@123`) — Aarav owns Savings + Current accounts for switching and self-transfer demos. Safe to re-run (skips existing).
 
-Bank Main treasury: `node backend/seed-bank-main.js` ensures the admin holds exactly one `Bank Main` account funded with ₹50,00,00,000 and clears leftover zero-balance test accounts. The admin role is view-only by design and cannot move currency.
+Bank Main treasury: `node backend/seed-bank-main.js` ensures the admin holds exactly one `Bank Main` account funded with ₹50,00,00,000 and clears leftover zero-balance test accounts. The admin is the bank owner: full power over his own money, view-only on customer profiles, and technically unable to transact from any user's account.
 
 ## Environment Variables
 

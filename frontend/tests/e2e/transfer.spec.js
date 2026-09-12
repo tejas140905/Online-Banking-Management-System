@@ -22,17 +22,18 @@ test.describe("transfer flow", () => {
     await expect(page.getByTestId("transfer-mode-another")).toBeVisible();
   });
 
-  test("admin sees view-only notice instead of transfer form", async ({ page }) => {
+  test("owner rule: admin cannot move money from a user account", async ({ request }) => {
+    const apiBase = process.env.PLAYWRIGHT_API_URL || "http://localhost:4000/api";
     const email = process.env.E2E_USER_EMAIL;
     const password = process.env.E2E_USER_PASSWORD;
     test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the admin test");
-    await page.goto("/login");
-    await page.getByTestId("login-email").fill(email);
-    await page.getByTestId("login-password").fill(password);
-    await page.getByTestId("login-submit").click();
-    await expect(page.getByTestId("admin-dashboard")).toBeVisible({ timeout: 15000 });
-    await page.goto("/transfer");
-    await expect(page.getByTestId("transfer-view-only")).toBeVisible();
+    const login = await request.post(`${apiBase}/auth/login`, { data: { email, password } });
+    const { token } = await login.json();
+    const res = await request.post(`${apiBase}/accounts/transfer`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { fromAccount: "2227100393615", toAccount: "896965152285", amount: 10 },
+    });
+    expect(res.status()).toBe(404);
   });
 
   test("transfer requires authentication (API guard)", async ({ request }) => {

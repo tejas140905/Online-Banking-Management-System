@@ -174,7 +174,7 @@ describe("banking REST API", () => {
     assert.equal(del.status, 200);
   });
 
-  it("admin currency operations are blocked as view-only", async (t) => {
+  it("owner rule: admin moves Bank Main money but never users accounts", async (t) => {
     if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
     const login = await fetch(`${BASE}/auth/login`, {
       method: "POST",
@@ -184,18 +184,32 @@ describe("banking REST API", () => {
     if (login.status === 500) return t.skip("MySQL not reachable");
     const { token } = await json(login);
     const H = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-    const transfer = await fetch(`${BASE}/accounts/transfer`, {
+    // Admin cannot initiate a transfer FROM another user's account.
+    const foreign = await fetch(`${BASE}/accounts/transfer`, {
       method: "POST",
       headers: H,
-      body: JSON.stringify({ fromAccount: "100000000001", toAccount: "X", amount: 10 }),
+      body: JSON.stringify({ fromAccount: "2227100393615", toAccount: "X", amount: 10 }),
     });
-    assert.equal(transfer.status, 403);
-    const open = await fetch(`${BASE}/accounts`, {
+    assert.equal(foreign.status, 404);
+    // Admin CAN move his own Bank Main money (Diya returns it: balances restored).
+    const out = await fetch(`${BASE}/accounts/transfer`, {
       method: "POST",
       headers: H,
-      body: JSON.stringify({ label: "Should Fail" }),
+      body: JSON.stringify({ fromAccount: "100000000001", toAccount: "896965152285", amount: 10 }),
     });
-    assert.equal(open.status, 403);
+    assert.equal(out.status, 200);
+    const diyaLogin = await fetch(`${BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "diya.demo@credx.bank", password: "Demo@123" }),
+    });
+    const { token: diyaToken } = await json(diyaLogin);
+    const back = await fetch(`${BASE}/accounts/transfer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${diyaToken}` },
+      body: JSON.stringify({ fromAccount: "896965152285", toAccount: "100000000001", amount: 10 }),
+    });
+    assert.equal(back.status, 200);
   });
 
   it("change-password rejects wrong current password without state change", async (t) => {    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
