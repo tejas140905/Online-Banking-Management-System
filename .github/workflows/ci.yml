@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: banking_app
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h localhost" --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: banking_app
+      DB_PORT: 3306
+      JWT_SECRET: ci-test-secret
+      PORT: 4000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - working-directory: backend
+        run: npm ci
+      - run: mysql -h 127.0.0.1 -uroot -proot < backend/schema.sql
+      - working-directory: backend
+        run: |
+          (node src/server.js & echo $! > /tmp/backend.pid)
+          sleep 4
+          npm run test:api
+          kill $(cat /tmp/backend.pid)
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npm run build

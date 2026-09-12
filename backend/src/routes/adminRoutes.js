@@ -8,6 +8,7 @@ const {
   allAccounts,
   monitorTransactions,
   stats,
+  getAuditLogs,
 } = require("../controllers/adminController");
 
 const router = express.Router();
@@ -21,5 +22,6 @@ router.post("/users/:userId/unblock", unblockUser);
 router.get("/accounts", allAccounts);
 router.get("/transactions", monitorTransactions);
 router.get("/stats", stats);
+router.get("/logs", getAuditLogs);
 
 module.exports = router;

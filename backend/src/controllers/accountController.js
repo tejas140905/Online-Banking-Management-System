@@ -88,13 +88,46 @@ const transferFunds = async (req, res, next) => {
 };
 
 const getTransactions = async (req, res, next) => {
-  const { account } = req.query;
+  // Statement-style listing: optional filters (account, type, status, date
+  // range) plus pagination. Response always includes `transactions` so older
+  // clients keep working; `pagination` carries page metadata.
+  const { account, type, status, from, to } = req.query;
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const offset = (page - 1) * limit;
   try {
+    const filters = ["a.user_id = ?"];
+    const params = [req.user.id];
+    if (account) {
+      filters.push("(t.from_account = ? OR t.to_account = ?)");
+      params.push(account, account);
+    }
+    if (type && ["CREDIT", "DEBIT"].includes(String(type).toUpperCase())) {
+      filters.push("t.type = ?");
+      params.push(String(type).toUpperCase());
+    }
+    if (status && ["SUCCESS", "FAILED"].includes(String(status).toUpperCase())) {
+      filters.push("t.status = ?");
+      params.push(String(status).toUpperCase());
+    }
+    if (from) {
+      filters.push("t.created_at >= ?");
+      params.push(from);
+    }
+    if (to) {
+      filters.push("t.created_at <= ?");
+      params.push(to);
+    }
+    const base = `FROM transactions t JOIN accounts a ON t.from_account = a.account_number OR t.to_account = a.account_number WHERE ${filters.join(" AND ")}`;
+    const [[{ total }]] = await pool.query(`SELECT COUNT(*) AS total ${base}`, params);
     const [rows] = await pool.query(
-      "SELECT t.txn_id, t.from_account, t.to_account, t.amount, t.type, t.status, t.created_at FROM transactions t JOIN accounts a ON t.from_account = a.account_number OR t.to_account = a.account_number WHERE a.user_id = ? AND (? IS NULL OR t.from_account = ? OR t.to_account = ?) ORDER BY t.created_at DESC",
-      [req.user.id, account || null, account || null, account || null],
+      `SELECT t.txn_id, t.from_account, t.to_account, t.amount, t.type, t.status, t.created_at ${base} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset],
     );
-    return res.json({ transactions: rows });
+    return res.json({
+      transactions: rows,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (err) {
     return next(err);
   }

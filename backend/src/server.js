@@ -12,6 +12,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const pool = require("./config/db");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -25,8 +26,19 @@ app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 app.use(morgan("dev"));
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", uptime: process.uptime() });
+app.get("/api/health", async (req, res) => {
+  let db = "up";
+  try {
+    await pool.query("SELECT 1");
+  } catch {
+    db = "down";
+  }
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    db,
+    version: process.env.npm_package_version || "1.0.0",
+  });
 });
 
 app.use("/api/auth", authRoutes);

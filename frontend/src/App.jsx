@@ -41,6 +41,7 @@ function App() {
       },
       logout: () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
         setUser(null);
       },

@@ -7,6 +7,9 @@ const ProfilePage = ({ auth }) => {
   const [profile, setProfile] = useState(null);
   const [name, setName] = useState("");
   const [message, setMessage] = useState(null);
+  const [pw, setPw] = useState({ currentPassword: "", newPassword: "" });
+  const [pwMessage, setPwMessage] = useState(null);
+  const [pwError, setPwError] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -21,6 +24,19 @@ const ProfilePage = ({ auth }) => {
     e.preventDefault();
     const { data } = await api.put("/user/profile", { name });
     setMessage(data.message);
+  };
+
+  const onPasswordChange = async (e) => {
+    e.preventDefault();
+    setPwMessage(null);
+    setPwError(null);
+    try {
+      const { data } = await api.put("/user/password", pw);
+      setPwMessage(data.message);
+      setPw({ currentPassword: "", newPassword: "" });
+    } catch (err) {
+      setPwError(err.response?.data?.message || "Password change failed");
+    }
   };
 
   return (
@@ -62,6 +78,40 @@ const ProfilePage = ({ auth }) => {
                 className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
               >
                 Save changes
+              </button>
+            </form>
+            <form onSubmit={onPasswordChange} data-testid="password-form" className="space-y-3 border-t border-slate-800 pt-4">
+              <div className="text-sm font-semibold text-white">Change password</div>
+              <label className="block text-sm text-slate-200">
+                Current password
+                <input
+                  type="password"
+                  data-testid="password-current"
+                  value={pw.currentPassword}
+                  onChange={(e) => setPw({ ...pw, currentPassword: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
+                  required
+                />
+              </label>
+              <label className="block text-sm text-slate-200">
+                New password
+                <input
+                  type="password"
+                  data-testid="password-new"
+                  value={pw.newPassword}
+                  onChange={(e) => setPw({ ...pw, newPassword: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
+                  required
+                />
+              </label>
+              {pwMessage && <div data-testid="password-success" className="text-success">{pwMessage}</div>}
+              {pwError && <div data-testid="password-error" className="text-danger">{pwError}</div>}
+              <button
+                type="submit"
+                data-testid="password-submit"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
+              >
+                Change password
               </button>
             </form>
           </div>

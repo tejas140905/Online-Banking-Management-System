@@ -86,4 +86,70 @@ describe("banking REST API", () => {
     });
     assert.ok([400, 404].includes(bad.status), `unexpected status ${bad.status}`);
   });
+
+  it("refresh-token rotation issues a new pair and revokes the old one", async (t) => {
+    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
+    const post = (path, body, token) =>
+      fetch(`${BASE}${path}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+    const login = await post("/auth/login", { email: EMAIL, password: PASSWORD });
+    if (login.status === 500) return t.skip("MySQL not reachable");
+    assert.equal(login.status, 200);
+    const first = await json(login);
+    assert.ok(first.refreshToken, "expected refresh token on login");
+
+    const rotated = await post("/auth/refresh", { refreshToken: first.refreshToken });
+    assert.equal(rotated.status, 200);
+    const second = await json(rotated);
+    assert.ok(second.token && second.refreshToken, "expected rotated pair");
+
+    const reuse = await post("/auth/refresh", { refreshToken: first.refreshToken });
+    assert.equal(reuse.status, 401, "old refresh token must be revoked after rotation");
+
+    const out = await post("/auth/logout", { refreshToken: second.refreshToken });
+    assert.equal(out.status, 200);
+    const afterLogout = await post("/auth/refresh", { refreshToken: second.refreshToken });
+    assert.equal(afterLogout.status, 401, "logged-out refresh token must be revoked");
+  });
+
+  it("transactions list carries pagination metadata", async (t) => {
+    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
+    const login = await fetch(`${BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+    });
+    if (login.status === 500) return t.skip("MySQL not reachable");
+    const { token } = await json(login);
+    const res = await fetch(`${BASE}/accounts/transactions?page=1&limit=5`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    assert.equal(res.status, 200);
+    const body = await json(res);
+    assert.ok(Array.isArray(body.transactions), "expected transactions array");
+    assert.ok(body.pagination && body.pagination.limit === 5, "expected pagination metadata");
+  });
+
+  it("change-password rejects wrong current password without state change", async (t) => {
+    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
+    const login = await fetch(`${BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+    });
+    if (login.status === 500) return t.skip("MySQL not reachable");
+    const { token } = await json(login);
+    const res = await fetch(`${BASE}/user/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ currentPassword: "definitely-wrong", newPassword: "NewPass@123" }),
+    });
+    assert.equal(res.status, 401);
+  });
 });

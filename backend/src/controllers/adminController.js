@@ -1,6 +1,10 @@
 const { validationResult } = require("express-validator");
 const pool = require("../config/db");
 
+// Every admin action is written to admin_logs for auditability.
+const audit = (adminId, action) =>
+  pool.query("INSERT INTO admin_logs (admin_id, action) VALUES (?, ?)", [adminId, action]);
+
 const getPendingUsers = async (req, res, next) => {
   try {
     const [rows] = await pool.query(
@@ -16,6 +20,7 @@ const approveUser = async (req, res, next) => {
   const { userId } = req.params;
   try {
     await pool.query("UPDATE users SET status = 'ACTIVE' WHERE id = ?", [userId]);
+    await audit(req.user.id, `approve user #${userId}`);
     return res.json({ message: "User approved" });
   } catch (err) {
     return next(err);
@@ -26,6 +31,7 @@ const blockUser = async (req, res, next) => {
   const { userId } = req.params;
   try {
     await pool.query("UPDATE users SET status = 'BLOCKED' WHERE id = ?", [userId]);
+    await audit(req.user.id, `block user #${userId}`);
     return res.json({ message: "User blocked" });
   } catch (err) {
     return next(err);
@@ -36,6 +42,7 @@ const unblockUser = async (req, res, next) => {
   const { userId } = req.params;
   try {
     await pool.query("UPDATE users SET status = 'ACTIVE' WHERE id = ?", [userId]);
+    await audit(req.user.id, `unblock user #${userId}`);
     return res.json({ message: "User unblocked" });
   } catch (err) {
     return next(err);
@@ -64,8 +71,7 @@ const monitorTransactions = async (req, res, next) => {
   }
 };
 
-const stats = async (req, res, next) => {
-  try {
+const stats = async (req, res, next) => {  try {
     const [[userCount]] = await pool.query(
       "SELECT COUNT(*) AS total_users FROM users WHERE role = 'USER'",
     );
@@ -85,6 +91,19 @@ const stats = async (req, res, next) => {
   }
 };
 
+const getAuditLogs = async (req, res, next) => {
+  const limit = Math.min(Number(req.query.limit) || 50, 200);
+  try {
+    const [rows] = await pool.query(
+      "SELECT l.log_id, l.action, l.created_at, u.name AS admin_name, u.email AS admin_email FROM admin_logs l JOIN users u ON u.id = l.admin_id ORDER BY l.created_at DESC LIMIT ?",
+      [limit],
+    );
+    return res.json({ logs: rows });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 module.exports = {
   getPendingUsers,
   approveUser,
@@ -93,4 +112,5 @@ module.exports = {
   allAccounts,
   monitorTransactions,
   stats,
+  getAuditLogs,
 };

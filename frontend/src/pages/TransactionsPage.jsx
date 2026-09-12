@@ -6,18 +6,23 @@ import NavBar from "../components/NavBar";
 const TransactionsPage = ({ auth }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const limit = 10;
 
   useEffect(() => {
     const fetchTxns = async () => {
+      setLoading(true);
       try {
-        const { data } = await api.get("/accounts/transactions");
+        const { data } = await api.get(`/accounts/transactions?page=${page}&limit=${limit}`);
         setRows(data.transactions || []);
+        setPages(data.pagination?.pages || 1);
       } finally {
         setLoading(false);
       }
     };
     fetchTxns();
-  }, []);
+  }, [page]);
 
   return (
     <div data-testid="transactions-page">
@@ -93,6 +98,29 @@ const TransactionsPage = ({ auth }) => {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="mt-3 flex items-center justify-between text-sm text-slate-300">
+          <span data-testid="transactions-page-info">
+            Page {page} of {pages}
+          </span>
+          <div className="space-x-2">
+            <button
+              data-testid="transactions-prev"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              className="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40"
+            >
+              Prev
+            </button>
+            <button
+              data-testid="transactions-next"
+              disabled={page >= pages}
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </PageShell>
     </div>

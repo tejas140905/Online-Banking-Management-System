@@ -18,6 +18,7 @@ const LoginPage = ({ auth }) => {
     try {
       const { data } = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", data.token);
+      if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
       auth.setUser(data.user);
       navigate(location.state?.from?.pathname || "/dashboard");
     } catch (err) {

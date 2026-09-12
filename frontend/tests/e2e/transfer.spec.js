@@ -54,5 +54,24 @@ test.describe("transfer flow", () => {
     await expect(page.getByTestId("dashboard")).toBeVisible({ timeout: 15000 });
     await page.goto("/transactions");
     await expect(page.getByTestId("transactions-table")).toBeVisible();
+    await expect(page.getByTestId("transactions-page-info")).toBeVisible();
+    await expect(page.getByTestId("transactions-prev")).toBeVisible();
+    await expect(page.getByTestId("transactions-next")).toBeVisible();
+  });
+
+  test("profile exposes password change form after login", async ({ page }) => {
+    const email = process.env.E2E_USER_EMAIL;
+    const password = process.env.E2E_USER_PASSWORD;
+    test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the live profile test");
+    await page.goto("/login");
+    await page.getByTestId("login-email").fill(email);
+    await page.getByTestId("login-password").fill(password);
+    await page.getByTestId("login-submit").click();
+    await expect(page.getByTestId("dashboard")).toBeVisible({ timeout: 15000 });
+    await page.goto("/profile");
+    await expect(page.getByTestId("password-form")).toBeVisible();
+    await expect(page.getByTestId("password-current")).toBeVisible();
+    await expect(page.getByTestId("password-new")).toBeVisible();
+    await expect(page.getByTestId("password-submit")).toBeVisible();
   });
 });

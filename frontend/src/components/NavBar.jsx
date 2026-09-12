@@ -1,6 +1,17 @@
 import { Link } from "react-router-dom";
+import api from "../api/client";
 
 const NavBar = ({ auth }) => {
+  // Server-side logout revokes the refresh token; local state clears regardless.
+  const onLogout = async () => {
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (refreshToken) await api.post("/auth/logout", { refreshToken });
+    } catch {
+      // logout locally even if the server call fails
+    }
+    auth.logout?.();
+  };
   return (
     <header className="sticky top-0 z-10 border-b border-slate-800 bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -23,7 +34,7 @@ const NavBar = ({ auth }) => {
                 </Link>
               )}
               <button
-                onClick={auth.logout}
+                onClick={onLogout}
                 data-testid="logout-button"
                 className="rounded border border-slate-700 px-3 py-1 hover:border-accent hover:text-accent"
               >

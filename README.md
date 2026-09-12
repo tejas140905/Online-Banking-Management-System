@@ -11,18 +11,19 @@ Customers register, get approved by an admin, then sign in to view accounts, tra
 ### Customer
 
 * Registration (pending admin approval)
-* JWT authentication
+* JWT authentication with refresh-token rotation
 * Dashboard with balances
 * Account management
 * Fund transfer with server-side validation
-* Transaction history
-* Profile management
+* Transaction history with pagination and filters
+* Profile management and password change
 
 ### Admin
 
-* Pending-user approvals (approve / block / unblock)
+* Pending-user approvals (approve / block / unblock) with audit logging
 * Account monitoring
 * Transaction monitoring
+* Audit-log viewer
 * Platform statistics
 
 ## Tech Stack
@@ -30,8 +31,9 @@ Customers register, get approved by an admin, then sign in to view accounts, tra
 Frontend: React, Vite, Tailwind CSS, JavaScript, Axios, React Router
 Backend: Node.js, Express.js, REST API
 Database: MySQL (mysql2, parameterized queries, transactions)
-Security: JWT, bcrypt, role-based authorization, Helmet, input validation (express-validator)
+Security: JWT + rotating refresh tokens, bcrypt, role-based authorization, Helmet, auth rate limiting, input validation (express-validator)
 Testing: Playwright (E2E), Node built-in test runner (API), Postman collection
+DevOps: Docker Compose, GitHub Actions CI
 Tools: Git, GitHub, Chrome DevTools, Postman
 
 ## Architecture
@@ -47,8 +49,9 @@ Express Backend (routes → controllers → MySQL)
 ## Authentication Flow
 
 ```text
-Login form → POST /api/auth/login → bcrypt check → JWT issued
-→ token in Authorization header → protected routes → dashboard
+Login form → POST /api/auth/login → bcrypt check → JWT + refresh token
+→ access token in Authorization header → silent rotation via /api/auth/refresh
+→ logout revokes refresh token → protected routes → dashboard
 ```
 
 ## Fund Transfer Flow
@@ -66,12 +69,15 @@ React form → client check → POST /api/accounts/transfer
 | ------ | -------- | ---- | ----------- |
 | GET | `/api/health` | No | Health check |
 | POST | `/api/auth/register` | No | Register customer (PENDING) + account number |
-| POST | `/api/auth/login` | No | JWT login (ACTIVE users only) |
+| POST | `/api/auth/login` | No | JWT login + refresh token (ACTIVE users only) |
+| POST | `/api/auth/refresh` | No | Rotate refresh token → new JWT pair |
+| POST | `/api/auth/logout` | No | Revoke refresh token |
 | GET | `/api/user/profile` | User | Profile + accounts |
 | PUT | `/api/user/profile` | User | Update name |
+| PUT | `/api/user/password` | User | Change password (revokes other sessions) |
 | GET | `/api/accounts` | User | List own accounts |
 | POST | `/api/accounts/transfer` | User | Atomic fund transfer |
-| GET | `/api/accounts/transactions` | User | Own transaction history |
+| GET | `/api/accounts/transactions` | User | History + filters (`account,type,status,from,to`) + pagination (`page,limit`) |
 | GET | `/api/admin/users/pending` | Admin | Pending approvals |
 | POST | `/api/admin/users/:userId/approve` | Admin | Approve user |
 | POST | `/api/admin/users/:userId/block` | Admin | Block user |
@@ -79,10 +85,11 @@ React form → client check → POST /api/accounts/transfer
 | GET | `/api/admin/accounts` | Admin | All accounts |
 | GET | `/api/admin/transactions` | Admin | Recent transactions |
 | GET | `/api/admin/stats` | Admin | Totals |
+| GET | `/api/admin/logs` | Admin | Audit log of admin actions |
 
 ## Database
 
-Tables: `users`, `accounts`, `transactions`, `admin_logs` (see `backend/schema.sql`).
+Tables: `users`, `accounts`, `transactions`, `admin_logs`, `refresh_tokens` (see `backend/schema.sql`; existing DBs: apply `backend/migrations/002_refresh_tokens.sql`).
 
 * `users` → `accounts`: one-to-many (`accounts.user_id` → `users.id`, cascade delete).
 * Transfers move balances between `accounts` rows and append `transactions` records.
@@ -91,6 +98,8 @@ Tables: `users`, `accounts`, `transactions`, `admin_logs` (see `backend/schema.s
 ## Security
 
 * Passwords hashed with bcrypt; never returned by the API.
+* Short-lived JWT access tokens + rotating opaque refresh tokens (SHA-256 hashed at rest, revoked on logout/password change).
+* Rate limiting on auth endpoints (`AUTH_RATE_LIMIT_MAX` per 15 min).
 * JWT auth middleware + role-based (`USER` / `ADMIN`) authorization.
 * Parameterized SQL everywhere; transfer wrapped in `BEGIN` / `COMMIT` / `ROLLBACK` with `SELECT ... FOR UPDATE` row locks.
 * express-validator on register, login, transfer, and profile update.
@@ -101,7 +110,16 @@ Tables: `users`, `accounts`, `transactions`, `admin_logs` (see `backend/schema.s
 
 * E2E: `frontend/tests/e2e/` (Playwright) — login form, invalid-credential error, dashboard auth guard, logout, transfer API guard; live login/transfer/history tests run when `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` point at a seeded ACTIVE user.
 * API: `backend/tests/api.test.js` (`npm run test:api`, no extra deps) — health, validation 400s, 401 guards, wrong-credential login.
-* Postman: `backend/postman/online-banking.postman_collection.json` (login auto-saves `{{token}}`).
+* Postman: `backend/postman/online-banking.postman_collection.json` (login auto-saves `{{token}}` + `{{refreshToken}}`).
+
+## Enterprise Operations
+
+* Every approve/block/unblock is written to `admin_logs` and viewable at `GET /api/admin/logs`.
+* Transaction history supports statement-style filters and pagination (`?account=&type=&status=&from=&to=&page=&limit=`).
+* Health endpoint reports DB status: `GET /api/health` → `{ status, uptime, db, version }`.
+* Password changes revoke all other sessions, forcing re-login.
+* Docker: `docker compose up --build` starts MySQL (auto-seeded from `schema.sql`), backend (:4000), and frontend (:8080). Override with `DB_PASSWORD` / `JWT_SECRET` env vars.
+* CI: `.github/workflows/ci.yml` runs API tests against MySQL 8 and the frontend production build on every push/PR.
 
 ## Browser Automation & QA
 
@@ -139,19 +157,22 @@ Demo: register a customer → sign in as `admin@bank.com` / `Admin@123` → appr
 
 ## Environment Variables
 
-Backend (`backend/.env`, see `backend/.env.example`): `PORT`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `FRONTEND_URL`.
+Backend (`backend/.env`, see `backend/.env.example`): `PORT`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `REFRESH_EXPIRES_DAYS`, `AUTH_RATE_LIMIT_MAX`, `FRONTEND_URL`.
 Frontend (`frontend/.env`, see `frontend/.env.example`): `VITE_API_URL` (defaults to `http://localhost:4000/api`).
 
 ## Key Engineering Highlights
 
 * RESTful API architecture with JSON request/response contracts.
-* JWT authentication with role-based authorization.
-* Server-side validation for registration, login, and transfers (rejects invalid, zero/negative, self-transfer, unknown-account, and insufficient-balance cases).
+* JWT authentication with rotating refresh tokens and role-based authorization.
+* Auth rate limiting and server-side validation for registration, login, and transfers.
 * Atomic database transactions (`BEGIN` → row locks → debit/credit → `COMMIT`, `ROLLBACK` on failure).
+* Admin audit logging for compliance-style traceability.
+* Paginated, filterable statements for transaction history.
 * Structured error handling with consistent JSON errors and safe status codes.
 * Browser automation testing via Playwright against stable DOM selectors.
 * API regression tests plus a Postman collection for manual verification.
 * MySQL data management with parameterized queries and relational integrity.
+* Dockerized deployment and CI pipeline (build + API tests on every push).
 
 ## Future Improvements
 
