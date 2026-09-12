@@ -20,7 +20,10 @@ const LoginPage = ({ auth }) => {
       localStorage.setItem("token", data.token);
       if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
       auth.setUser(data.user);
-      navigate(location.state?.from?.pathname || "/dashboard");
+      // Role-based landing: admins go straight to the console where they can
+      // see everything happening; customers go to their own dashboard.
+      const fallback = data.user?.role === "ADMIN" ? "/admin" : "/dashboard";
+      navigate(location.state?.from?.pathname || fallback);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {

@@ -77,10 +77,10 @@ test.describe("auth flow", () => {
     }
     await expect(page).toHaveURL(/\/login/);
   });
-
-  test("full login succeeds with seeded demo credentials", async ({ page }) => {    const email = process.env.E2E_USER_EMAIL;
-    const password = process.env.E2E_USER_PASSWORD;
-    test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the live login test");
+  test("full login succeeds with seeded demo credentials", async ({ page }) => {
+    // Customer login lands on the own-data dashboard with account tools.
+    const email = process.env.E2E_CUSTOMER_EMAIL || "aarav.demo@credx.bank";
+    const password = process.env.E2E_CUSTOMER_PASSWORD || "Demo@123";
     await page.goto("/login");
     await page.getByTestId("login-email").fill(email);
     await page.getByTestId("login-password").fill(password);

@@ -15,6 +15,15 @@ const getAccounts = async (req, res, next) => {
   }
 };
 
+// Admin accounts are strictly view-only: full visibility, zero currency movement.
+const denyAdminCurrency = (req, res) => {
+  if (req.user.role === "ADMIN") {
+    res.status(403).json({ message: "Admin accounts are view-only. Currency operations are disabled." });
+    return true;
+  }
+  return false;
+};
+
 // Open an additional account for the signed-in user (multi-account support).
 // Retries on the rare random account-number collision.
 const createAccount = async (req, res, next) => {
@@ -22,6 +31,7 @@ const createAccount = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
+  if (denyAdminCurrency(req, res)) return undefined;
   const label = (req.body?.label || "").trim() || null;
   try {
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -49,6 +59,7 @@ const transferFunds = async (req, res, next) => {
   }
 
   const { fromAccount, toAccount, amount: rawAmount } = req.body;
+  if (denyAdminCurrency(req, res)) return undefined;
   // Normalize amount: express-validator ensures gt 0, but coerce string->number
   // so balance math and MySQL params are strictly numeric.
   const amount = Number(rawAmount);
@@ -130,8 +141,33 @@ const transferFunds = async (req, res, next) => {
   }
 };
 
-const getTransactions = async (req, res, next) => {
-  // Statement-style listing: optional filters (account, type, status, date
+// Close an empty own account (zero balance only — never destroys money).
+const closeAccount = async (req, res, next) => {
+  if (denyAdminCurrency(req, res)) return undefined;
+  const { accountNumber } = req.params;
+  if (!accountNumber) {
+    return res.status(400).json({ message: "Account number required" });
+  }
+  try {
+    const [rows] = await pool.query(
+      "SELECT balance FROM accounts WHERE account_number = ? AND user_id = ?",
+      [accountNumber, req.user.id],
+    );
+    if (!rows.length) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+    if (Number(rows[0].balance) !== 0) {
+      return res.status(400).json({ message: "Only zero-balance accounts can be closed" });
+    }
+    await pool.query("DELETE FROM accounts WHERE account_number = ?", [accountNumber]);
+    await audit(req.user.id, `close account ${accountNumber}`);
+    return res.json({ message: "Account closed" });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getTransactions = async (req, res, next) => {  // Statement-style listing: optional filters (account, type, status, date
   // range) plus pagination. Response always includes `transactions` so older
   // clients keep working; `pagination` carries page metadata.
   const { account, type, status, from, to } = req.query;
@@ -181,4 +217,4 @@ const getTransactions = async (req, res, next) => {
   }
 };
 
-module.exports = { getAccounts, createAccount, transferFunds, getTransactions };
+module.exports = { getAccounts, createAccount, closeAccount, transferFunds, getTransactions };

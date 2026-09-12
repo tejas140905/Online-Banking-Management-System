@@ -52,6 +52,7 @@ const UserDashboard = ({ auth }) => {
   };
 
   const total = accounts.reduce((sum, acc) => sum + Number(acc.balance || 0), 0);
+  const isAdmin = auth.user?.role === "ADMIN";
 
   return (
     <div data-testid="dashboard">
@@ -65,12 +66,14 @@ const UserDashboard = ({ auth }) => {
           { label: "Profile", href: "/profile" },
         ]}
         actions={
-          <Link
-            to="/transfer"
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
-          >
-            New Transfer
-          </Link>
+          isAdmin ? undefined : (
+            <Link
+              to="/transfer"
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
+            >
+              New Transfer
+            </Link>
+          )
         }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -121,23 +124,29 @@ const UserDashboard = ({ auth }) => {
               })}
               {!accounts.length && <div className="text-sm text-muted">No accounts yet.</div>}
             </div>
-            <form onSubmit={openAccount} data-testid="open-account-form" className="mt-4 flex gap-2">
-              <input
-                data-testid="open-account-label"
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                placeholder="New account label (e.g. Savings)"
-                maxLength={40}
-                className="w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-sm text-white focus:border-accent"
-              />
-              <button
-                type="submit"
-                data-testid="open-account-submit"
-                className="whitespace-nowrap rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
-              >
-                Open account
-              </button>
-            </form>
+            {isAdmin ? (
+              <div className="mt-4 text-sm text-muted">
+                View-only: admin accounts cannot move currency.
+              </div>
+            ) : (
+              <form onSubmit={openAccount} data-testid="open-account-form" className="mt-4 flex gap-2">
+                <input
+                  data-testid="open-account-label"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  placeholder="New account label (e.g. Savings)"
+                  maxLength={40}
+                  className="w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-sm text-white focus:border-accent"
+                />
+                <button
+                  type="submit"
+                  data-testid="open-account-submit"
+                  className="whitespace-nowrap rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
+                >
+                  Open account
+                </button>
+              </form>
+            )}
             {message && (
               <div data-testid="open-account-success" className="mt-2 text-sm text-success">
                 {message}

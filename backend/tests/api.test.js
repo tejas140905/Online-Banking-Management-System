@@ -9,6 +9,9 @@ const assert = require("node:assert/strict");
 const BASE = process.env.API_BASE_URL || "http://localhost:4000/api";
 const EMAIL = process.env.E2E_USER_EMAIL;
 const PASSWORD = process.env.E2E_USER_PASSWORD;
+// Non-admin customer for currency-flow tests (admin is view-only).
+const USER_EMAIL = process.env.E2E_CUSTOMER_EMAIL || "aarav.demo@credx.bank";
+const USER_PASSWORD = process.env.E2E_CUSTOMER_PASSWORD || "Demo@123";
 
 const json = async (res) => {
   try {
@@ -79,12 +82,12 @@ describe("banking REST API", () => {
   });
 
   it("authenticated transfer validation rejects bad amount (needs seeded user)", async (t) => {
-    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
     const login = await fetch(`${BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+      body: JSON.stringify({ email: USER_EMAIL, password: USER_PASSWORD }),
     });
+    if (login.status === 500) return t.skip("MySQL not reachable");
     assert.equal(login.status, 200);
     const { token } = await json(login);
     assert.ok(token, "expected JWT token");
@@ -145,14 +148,15 @@ describe("banking REST API", () => {
     assert.ok(body.pagination && body.pagination.limit === 5, "expected pagination metadata");
   });
 
-  it("authenticated user can open an additional account", async (t) => {
+  it("authenticated user can open and close an additional account", async (t) => {
     if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
     const login = await fetch(`${BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+      body: JSON.stringify({ email: USER_EMAIL, password: USER_PASSWORD }),
     });
     if (login.status === 500) return t.skip("MySQL not reachable");
+    assert.equal(login.status, 200);
     const { token } = await json(login);
     const res = await fetch(`${BASE}/accounts`, {
       method: "POST",
@@ -162,6 +166,36 @@ describe("banking REST API", () => {
     assert.equal(res.status, 201);
     const body = await json(res);
     assert.ok(body.accountNumber, "expected new account number");
+    // Cleanup: close the empty test account so suites leave no residue.
+    const del = await fetch(`${BASE}/accounts/${body.accountNumber}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    assert.equal(del.status, 200);
+  });
+
+  it("admin currency operations are blocked as view-only", async (t) => {
+    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
+    const login = await fetch(`${BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+    });
+    if (login.status === 500) return t.skip("MySQL not reachable");
+    const { token } = await json(login);
+    const H = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+    const transfer = await fetch(`${BASE}/accounts/transfer`, {
+      method: "POST",
+      headers: H,
+      body: JSON.stringify({ fromAccount: "100000000001", toAccount: "X", amount: 10 }),
+    });
+    assert.equal(transfer.status, 403);
+    const open = await fetch(`${BASE}/accounts`, {
+      method: "POST",
+      headers: H,
+      body: JSON.stringify({ label: "Should Fail" }),
+    });
+    assert.equal(open.status, 403);
   });
 
   it("change-password rejects wrong current password without state change", async (t) => {    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");

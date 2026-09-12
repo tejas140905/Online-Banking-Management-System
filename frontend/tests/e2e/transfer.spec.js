@@ -4,9 +4,9 @@ import { test, expect } from "@playwright/test";
 // unauthenticated API guard. The live transfer needs seeded creds + DB.
 test.describe("transfer flow", () => {
   test("transfer form exposes stable selectors for automation", async ({ page }) => {
-    const email = process.env.E2E_USER_EMAIL;
-    const password = process.env.E2E_USER_PASSWORD;
-    test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the live transfer test");
+    // Currency flows need a non-admin customer (admin is view-only).
+    const email = process.env.E2E_CUSTOMER_EMAIL || "aarav.demo@credx.bank";
+    const password = process.env.E2E_CUSTOMER_PASSWORD || "Demo@123";
     await page.goto("/login");
     await page.getByTestId("login-email").fill(email);
     await page.getByTestId("login-password").fill(password);
@@ -20,6 +20,19 @@ test.describe("transfer flow", () => {
     await expect(page.getByTestId("transfer-submit")).toBeVisible();
     await expect(page.getByTestId("transfer-mode-self")).toBeVisible();
     await expect(page.getByTestId("transfer-mode-another")).toBeVisible();
+  });
+
+  test("admin sees view-only notice instead of transfer form", async ({ page }) => {
+    const email = process.env.E2E_USER_EMAIL;
+    const password = process.env.E2E_USER_PASSWORD;
+    test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the admin test");
+    await page.goto("/login");
+    await page.getByTestId("login-email").fill(email);
+    await page.getByTestId("login-password").fill(password);
+    await page.getByTestId("login-submit").click();
+    await expect(page.getByTestId("admin-dashboard")).toBeVisible({ timeout: 15000 });
+    await page.goto("/transfer");
+    await expect(page.getByTestId("transfer-view-only")).toBeVisible();
   });
 
   test("transfer requires authentication (API guard)", async ({ request }) => {
@@ -46,9 +59,8 @@ test.describe("transfer flow", () => {
   });
 
   test("transaction history table renders after login", async ({ page }) => {
-    const email = process.env.E2E_USER_EMAIL;
-    const password = process.env.E2E_USER_PASSWORD;
-    test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the live history test");
+    const email = process.env.E2E_CUSTOMER_EMAIL || "aarav.demo@credx.bank";
+    const password = process.env.E2E_CUSTOMER_PASSWORD || "Demo@123";
     await page.goto("/login");
     await page.getByTestId("login-email").fill(email);
     await page.getByTestId("login-password").fill(password);
@@ -62,9 +74,8 @@ test.describe("transfer flow", () => {
   });
 
   test("profile exposes password change form after login", async ({ page }) => {
-    const email = process.env.E2E_USER_EMAIL;
-    const password = process.env.E2E_USER_PASSWORD;
-    test.skip(!email || !password, "Set E2E_USER_EMAIL/E2E_USER_PASSWORD for the live profile test");
+    const email = process.env.E2E_CUSTOMER_EMAIL || "aarav.demo@credx.bank";
+    const password = process.env.E2E_CUSTOMER_PASSWORD || "Demo@123";
     await page.goto("/login");
     await page.getByTestId("login-email").fill(email);
     await page.getByTestId("login-password").fill(password);

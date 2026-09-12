@@ -75,6 +75,14 @@
       }
     },
     {
+      "name": "Accounts - Close empty account",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/accounts/ACC0000000000"
+      }
+    },
+    {
       "name": "Accounts - Transfer",      "request": {
         "method": "POST",
         "header": [
