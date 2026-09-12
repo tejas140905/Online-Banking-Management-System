@@ -4,6 +4,7 @@ import api from "../api/client";
 import PageShell from "../components/PageShell";
 import StatCard from "../components/StatCard";
 import NavBar from "../components/NavBar";
+import { formatINR } from "../utils/currency";
 
 const UserDashboard = ({ auth }) => {
   const [accounts, setAccounts] = useState([]);
@@ -46,7 +47,7 @@ const UserDashboard = ({ auth }) => {
         }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <StatCard label="Total Balance" value={loading ? "..." : `$${total.toFixed(2)}`} />
+          <StatCard label="Total Balance" value={loading ? "..." : formatINR(total)} />
           <StatCard label="Accounts" value={accounts.length} />
           <StatCard label="Status" value={auth.user?.role || "USER"} hint="RBAC protected" />
         </div>
@@ -65,7 +66,7 @@ const UserDashboard = ({ auth }) => {
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-muted">Balance</div>
-                    <div className="font-semibold text-success">${Number(acc.balance).toFixed(2)}</div>
+                    <div className="font-semibold text-success">{formatINR(acc.balance)}</div>
                   </div>
                 </div>
               ))}

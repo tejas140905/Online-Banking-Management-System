@@ -44,7 +44,7 @@ const HomePage = ({ auth }) => {
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-lg bg-secondary p-4">
                   <div className="text-xs text-muted">Total Balance</div>
-                  <div className="mt-2 text-2xl font-semibold text-white">$42,500.00</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">₹42,500.00</div>
                 </div>
                 <div className="rounded-lg bg-secondary p-4">
                   <div className="text-xs text-muted">Accounts</div>
@@ -52,7 +52,7 @@ const HomePage = ({ auth }) => {
                 </div>
                 <div className="rounded-lg bg-secondary p-4">
                   <div className="text-xs text-muted">Last Transfer</div>
-                  <div className="mt-2 text-2xl font-semibold text-success">$1,250</div>
+                  <div className="mt-2 text-2xl font-semibold text-success">₹1,250</div>
                 </div>
               </div>
               <div className="rounded-xl bg-secondary p-4">

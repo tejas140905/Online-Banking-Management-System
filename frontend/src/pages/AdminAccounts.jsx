@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/client";
 import PageShell from "../components/PageShell";
 import NavBar from "../components/NavBar";
+import { formatINR } from "../utils/currency";
 
 const AdminAccounts = () => {
   const [rows, setRows] = useState([]);
@@ -44,7 +45,7 @@ const AdminAccounts = () => {
                   <td className="px-4 py-3 text-slate-200">{row.account_number}</td>
                   <td className="px-4 py-3 text-slate-200">{row.name}</td>
                   <td className="px-4 py-3 text-slate-200">{row.email}</td>
-                  <td className="px-4 py-3 font-semibold text-white">${row.balance}</td>
+                  <td className="px-4 py-3 font-semibold text-white">{formatINR(row.balance)}</td>
                   <td className="px-4 py-3 text-muted">{row.status}</td>
                 </tr>
               ))}

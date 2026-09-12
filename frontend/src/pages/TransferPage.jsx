@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/client";
 import PageShell from "../components/PageShell";
 import NavBar from "../components/NavBar";
+import { formatINR } from "../utils/currency";
 
 const TransferPage = ({ auth }) => {
   const [accounts, setAccounts] = useState([]);
@@ -61,7 +62,7 @@ const TransferPage = ({ auth }) => {
                   <option value="">Select account</option>
                   {accounts.map((acc) => (
                     <option key={acc.account_number} value={acc.account_number}>
-                      {acc.account_number} — ${Number(acc.balance).toFixed(2)}
+                      {acc.account_number} — {formatINR(acc.balance)}
                     </option>
                   ))}
                 </select>
