@@ -12,12 +12,17 @@ const UserDashboard = ({ auth }) => {
   const [active, setActive] = useState(() => localStorage.getItem("activeAccount") || "");
   const [label, setLabel] = useState("");
   const [message, setMessage] = useState(null);
+  const [pendingClosures, setPendingClosures] = useState([]);
 
   const fetchAccounts = async () => {
     try {
-      const { data } = await api.get("/accounts");
+      const [{ data }, { data: closures }] = await Promise.all([
+        api.get("/accounts"),
+        api.get("/accounts/closures/mine"),
+      ]);
       const list = data.accounts || [];
       setAccounts(list);
+      setPendingClosures((closures.closures || []).filter((c) => c.status === "PENDING"));
       if (!localStorage.getItem("activeAccount") && list.length) {
         localStorage.setItem("activeAccount", list[0].account_number);
         setActive(list[0].account_number);
@@ -41,19 +46,17 @@ const UserDashboard = ({ auth }) => {
     setActive(num);
   };
 
-  // Close an account once its balance is zero (server enforces this too).
+  // Close is a request: the account shuts only after admin approval.
   const closeAccount = async (accountNumber, balance) => {
     if (Number(balance) !== 0) return;
-    if (!window.confirm(`Close account ${accountNumber}? This cannot be undone.`)) return;
+    if (!window.confirm(`Request closure of account ${accountNumber}? An admin must approve.`)) return;
     setMessage(null);
     try {
-      await api.delete(`/accounts/${accountNumber}`);
-      if (localStorage.getItem("activeAccount") === accountNumber) {
-        localStorage.removeItem("activeAccount");
-      }
+      const { data } = await api.delete(`/accounts/${accountNumber}`);
+      setMessage(data.message);
       await fetchAccounts();
     } catch (err) {
-      setMessage(err.response?.data?.message || "Could not close account");
+      setMessage(err.response?.data?.message || "Could not request closure");
     }
   };
 
@@ -131,19 +134,24 @@ const UserDashboard = ({ auth }) => {
                     <div className="text-right">
                       <div className="text-xs text-muted">Balance</div>
                       <div className="font-semibold text-success">{formatINR(acc.balance)}</div>
-                      {Number(acc.balance) === 0 && (
-                        <button
-                          type="button"
-                          data-testid={`close-account-${acc.account_number}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            closeAccount(acc.account_number, acc.balance);
-                          }}
-                          className="mt-1 text-xs text-danger hover:underline"
-                        >
-                          Close account
-                        </button>
-                      )}
+                      {Number(acc.balance) === 0 &&
+                        (pendingClosures.some((c) => c.account_number === acc.account_number) ? (
+                          <span className="mt-1 inline-block rounded-full bg-accent/20 px-2 py-0.5 text-xs text-accent">
+                            Pending approval
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            data-testid={`close-account-${acc.account_number}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeAccount(acc.account_number, acc.balance);
+                            }}
+                            className="mt-1 text-xs text-danger hover:underline"
+                          >
+                            Close account
+                          </button>
+                        ))}
                     </div>
                   </button>
                 );

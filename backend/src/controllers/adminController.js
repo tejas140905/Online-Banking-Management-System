@@ -101,14 +101,82 @@ const stats = async (req, res, next) => {
   }
 };
 
-const getAuditLogs = async (req, res, next) => {
-  const limit = Math.min(Number(req.query.limit) || 50, 200);
+const getAuditLogs = async (req, res, next) => {  const limit = Math.min(Number(req.query.limit) || 50, 200);
   try {
     const [rows] = await pool.query(
       "SELECT l.log_id, l.action, l.created_at, u.name AS admin_name, u.email AS admin_email FROM admin_logs l JOIN users u ON u.id = l.admin_id ORDER BY l.created_at DESC LIMIT ?",
       [limit],
     );
     return res.json({ logs: rows });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getPendingClosures = async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT c.id, c.account_number, a.balance, u.name, u.email, c.created_at
+       FROM closure_requests c JOIN users u ON u.id = c.user_id
+       LEFT JOIN accounts a ON a.account_number = c.account_number
+       WHERE c.status = 'PENDING' ORDER BY c.created_at`,
+    );
+    return res.json({ closures: rows });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const approveClosure = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(
+      "SELECT account_number FROM closure_requests WHERE id = ? AND status = 'PENDING'",
+      [id],
+    );
+    if (!rows.length) {
+      return res.status(404).json({ message: "Pending request not found" });
+    }
+    const [[acc]] = await pool.query("SELECT balance FROM accounts WHERE account_number = ?", [
+      rows[0].account_number,
+    ]);
+    // Money can never be destroyed: refuse if funds landed after the request.
+    if (!acc || Number(acc.balance) !== 0) {
+      await pool.query(
+        "UPDATE closure_requests SET status = 'REJECTED', decided_by = ?, decided_at = NOW() WHERE id = ?",
+        [req.user.id, id],
+      );
+      await audit(req.user.id, `reject close account ${rows[0].account_number} (non-zero balance)`);
+      return res.status(400).json({ message: "Account no longer empty — request rejected" });
+    }
+    await pool.query("DELETE FROM accounts WHERE account_number = ?", [rows[0].account_number]);
+    await pool.query(
+      "UPDATE closure_requests SET status = 'APPROVED', decided_by = ?, decided_at = NOW() WHERE id = ?",
+      [req.user.id, id],
+    );
+    await audit(req.user.id, `approve close account ${rows[0].account_number}`);
+    return res.json({ message: "Account closed" });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const rejectClosure = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(
+      "SELECT account_number FROM closure_requests WHERE id = ? AND status = 'PENDING'",
+      [id],
+    );
+    if (!rows.length) {
+      return res.status(404).json({ message: "Pending request not found" });
+    }
+    await pool.query(
+      "UPDATE closure_requests SET status = 'REJECTED', decided_by = ?, decided_at = NOW() WHERE id = ?",
+      [req.user.id, id],
+    );
+    await audit(req.user.id, `reject close account ${rows[0].account_number}`);
+    return res.json({ message: "Closure request rejected" });
   } catch (err) {
     return next(err);
   }
@@ -123,4 +191,7 @@ module.exports = {
   monitorTransactions,
   stats,
   getAuditLogs,
+  getPendingClosures,
+  approveClosure,
+  rejectClosure,
 };

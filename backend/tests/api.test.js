@@ -148,7 +148,7 @@ describe("banking REST API", () => {
     assert.ok(body.pagination && body.pagination.limit === 5, "expected pagination metadata");
   });
 
-  it("authenticated user can open and close an additional account", async (t) => {
+  it("account closure needs admin approval", async (t) => {
     if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
     const login = await fetch(`${BASE}/auth/login`, {
       method: "POST",
@@ -171,7 +171,33 @@ describe("banking REST API", () => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-    assert.equal(del.status, 200);
+    // Request only submits for approval — the account still exists.
+    assert.equal(del.status, 202);
+    const still = await json(
+      await fetch(`${BASE}/accounts`, { headers: { Authorization: `Bearer ${token}` } })
+    );
+    assert.ok(still.accounts.some((a) => a.account_number === body.accountNumber));
+    // Admin approves → account actually closes.
+    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
+    const adminLogin = await fetch(`${BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+    });
+    const { token: adminToken } = await json(adminLogin);
+    const AH = { Authorization: `Bearer ${adminToken}` };
+    const pending = await json(await fetch(`${BASE}/admin/closures/pending`, { headers: AH }));
+    const target = pending.closures.find((c) => c.account_number === body.accountNumber);
+    assert.ok(target, "expected pending closure request");
+    const approved = await fetch(`${BASE}/admin/closures/${target.id}/approve`, {
+      method: "POST",
+      headers: AH,
+    });
+    assert.equal(approved.status, 200);
+    const gone = await json(
+      await fetch(`${BASE}/accounts`, { headers: { Authorization: `Bearer ${token}` } })
+    );
+    assert.ok(!gone.accounts.some((a) => a.account_number === body.accountNumber));
   });
 
   it("owner rule: admin moves Bank Main money but never users accounts", async (t) => {
@@ -222,7 +248,15 @@ describe("banking REST API", () => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-    assert.equal(del.status, 200);
+    assert.equal(del.status, 202);
+    const pend = await json(await fetch(`${BASE}/admin/closures/pending`, { headers: H }));
+    const mine = pend.closures.find((c) => c.account_number === accountNumber);
+    assert.ok(mine, "expected pending closure request");
+    const approved = await fetch(`${BASE}/admin/closures/${mine.id}/approve`, {
+      method: "POST",
+      headers: H,
+    });
+    assert.equal(approved.status, 200);
   });
 
   it("change-password rejects wrong current password without state change", async (t) => {    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");

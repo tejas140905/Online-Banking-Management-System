@@ -14,6 +14,7 @@ Customers register, get approved by an admin, then sign in to view accounts, tra
 * JWT authentication with refresh-token rotation
 * Dashboard with all accounts, balances, and active-account switching
 * Open additional named accounts (Savings, Current, ...)
+* Request account closure — an admin must approve before anything is deleted
 * Fund transfer with server-side validation (self transfer between own accounts, or external)
 * Transaction history with pagination and filters
 * Profile management and password change
@@ -82,7 +83,7 @@ React form → client check → POST /api/accounts/transfer
 | PUT | `/api/user/password` | User | Change password (revokes other sessions) |
 | GET | `/api/accounts` | User | List own accounts (with labels) |
 | POST | `/api/accounts` | User | Open an additional named account |
-| DELETE | `/api/accounts/:accountNumber` | User | Close an empty own account |
+| DELETE | `/api/accounts/:accountNumber` | User | Request closure (admin approval required) |
 | POST | `/api/accounts/transfer` | User | Atomic fund transfer (source must belong to caller) |
 | GET | `/api/accounts/transactions` | User | History + filters (`account,type,status,from,to`) + pagination (`page,limit`) |
 | GET | `/api/admin/users/pending` | Admin | Pending approvals |
@@ -93,6 +94,9 @@ React form → client check → POST /api/accounts/transfer
 | GET | `/api/admin/transactions` | Admin | Recent transactions |
 | GET | `/api/admin/stats` | Admin | Totals |
 | GET | `/api/admin/logs` | Admin | Audit log of admin actions |
+| GET | `/api/admin/closures/pending` | Admin | Account closure requests |
+| POST | `/api/admin/closures/:id/approve` | Admin | Approve closure (zero-balance enforced) |
+| POST | `/api/admin/closures/:id/reject` | Admin | Reject closure |
 
 ## Database
 

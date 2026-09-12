@@ -41,8 +41,7 @@ CREATE TABLE IF NOT EXISTS admin_logs (
   FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS refresh_tokens (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS refresh_tokens (  id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   token_hash VARCHAR(255) NOT NULL,
   expires_at DATETIME NOT NULL,
@@ -50,6 +49,19 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_refresh_token_hash (token_hash)
+);
+
+CREATE TABLE IF NOT EXISTS closure_requests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  account_number VARCHAR(20) NOT NULL,
+  user_id INT NOT NULL,
+  status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+  decided_by INT NULL,
+  decided_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (decided_by) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_closure_status (status)
 );
 
 -- Seed a default admin (change password after import)

@@ -1,6 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { getAccounts, createAccount, closeAccount, transferFunds, getTransactions } = require("../controllers/accountController");
+const { getAccounts, createAccount, closeAccount, getClosures, transferFunds, getTransactions } = require("../controllers/accountController");
 const { authenticate } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -15,6 +15,8 @@ router.post(
 );
 
 router.delete("/:accountNumber", authenticate, closeAccount);
+
+router.get("/closures/mine", authenticate, getClosures);
 
 router.post(
   "/transfer",

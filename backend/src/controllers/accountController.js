@@ -132,7 +132,8 @@ const transferFunds = async (req, res, next) => {
   }
 };
 
-// Close an empty own account (zero balance only — never destroys money).
+// Request account closure (zero balance only). An admin must approve before
+// anything is deleted — the request sits in closure_requests as PENDING.
 const closeAccount = async (req, res, next) => {
   const { accountNumber } = req.params;
   if (!accountNumber) {
@@ -147,11 +148,33 @@ const closeAccount = async (req, res, next) => {
       return res.status(404).json({ message: "Account not found" });
     }
     if (Number(rows[0].balance) !== 0) {
-      return res.status(400).json({ message: "Only zero-balance accounts can be closed" });
+      return res.status(400).json({ message: "Transfer out funds before requesting closure" });
     }
-    await pool.query("DELETE FROM accounts WHERE account_number = ?", [accountNumber]);
-    await audit(req.user.id, `close account ${accountNumber}`);
-    return res.json({ message: "Account closed" });
+    const [pending] = await pool.query(
+      "SELECT id FROM closure_requests WHERE account_number = ? AND status = 'PENDING'",
+      [accountNumber],
+    );
+    if (pending.length) {
+      return res.json({ message: "Closure already pending admin approval" });
+    }
+    await pool.query("INSERT INTO closure_requests (account_number, user_id) VALUES (?, ?)", [
+      accountNumber,
+      req.user.id,
+    ]);
+    await audit(req.user.id, `request close account ${accountNumber}`);
+    return res.status(202).json({ message: "Closure request submitted for admin approval" });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getClosures = async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, account_number, status, created_at FROM closure_requests WHERE user_id = ? ORDER BY created_at DESC",
+      [req.user.id],
+    );
+    return res.json({ closures: rows });
   } catch (err) {
     return next(err);
   }
@@ -214,4 +237,4 @@ const getTransactions = async (req, res, next) => {  // Statement-style listing:
   }
 };
 
-module.exports = { getAccounts, createAccount, closeAccount, transferFunds, getTransactions };
+module.exports = { getAccounts, createAccount, closeAccount, getClosures, transferFunds, getTransactions };

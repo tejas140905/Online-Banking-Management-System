@@ -9,6 +9,9 @@ const {
   monitorTransactions,
   stats,
   getAuditLogs,
+  getPendingClosures,
+  approveClosure,
+  rejectClosure,
 } = require("../controllers/adminController");
 
 const router = express.Router();
@@ -23,5 +26,8 @@ router.get("/accounts", allAccounts);
 router.get("/transactions", monitorTransactions);
 router.get("/stats", stats);
 router.get("/logs", getAuditLogs);
+router.get("/closures/pending", getPendingClosures);
+router.post("/closures/:id/approve", approveClosure);
+router.post("/closures/:id/reject", rejectClosure);
 
 module.exports = router;

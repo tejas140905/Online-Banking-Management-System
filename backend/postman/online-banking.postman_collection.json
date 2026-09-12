@@ -75,11 +75,19 @@
       }
     },
     {
-      "name": "Accounts - Close empty account",
+      "name": "Accounts - Request closure",
       "request": {
         "method": "DELETE",
         "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
         "url": "{{baseUrl}}/accounts/ACC0000000000"
+      }
+    },
+    {
+      "name": "Admin - Approve closure",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/admin/closures/1/approve"
       }
     },
     {
