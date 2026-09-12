@@ -1,10 +1,37 @@
 import { Link } from "react-router-dom";
-import NavBar from "../components/NavBar";
+import { formatIN } from "../utils/currency";
 
-const HomePage = ({ auth }) => {
+// Landing nav for CREDX Digital Banking (spec: Home, Dashboard, Profile).
+// Dashboard/Profile are guard-railed by Protected routes, so guests land on login.
+const LandingNav = () => (
+  <header
+    data-testid="landing-nav"
+    className="sticky top-0 z-10 border-b border-slate-800 bg-surface/90 backdrop-blur"
+  >
+    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-white">
+        <span className="rounded bg-accent px-2 py-1 text-sm font-bold text-surface">CREDX</span>
+        <span>Digital Banking</span>
+      </Link>
+      <nav className="flex flex-wrap items-center gap-4 text-sm text-slate-200">
+        <Link to="/" className="hover:text-accent">
+          Home
+        </Link>
+        <Link to="/dashboard" className="hover:text-accent">
+          Dashboard
+        </Link>
+        <Link to="/profile" className="hover:text-accent">
+          Profile
+        </Link>
+      </nav>
+    </div>
+  </header>
+);
+
+const HomePage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary via-surface to-surface text-slate-100">
-      <NavBar auth={auth} />
+      <LandingNav />
       <section className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16">
         <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
           <div className="space-y-6">
@@ -20,39 +47,43 @@ const HomePage = ({ auth }) => {
             <div className="flex flex-wrap gap-4">
               <Link
                 to="/register"
+                data-testid="hero-open-account"
                 className="rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-surface hover:bg-sky-400"
               >
                 Open an Account
               </Link>
               <Link
                 to="/login"
+                data-testid="hero-sign-in"
                 className="rounded-lg border border-slate-700 px-6 py-3 text-sm font-semibold hover:border-accent hover:text-accent"
               >
                 Sign in
               </Link>
               <Link
-                to="/platform"
+                to="/admin"
+                data-testid="hero-admin"
                 className="rounded-lg border border-slate-700 px-6 py-3 text-sm font-semibold hover:border-accent hover:text-accent"
               >
-                Explore Platform
+                Admin
               </Link>
             </div>
           </div>
-          <div className="glass rounded-2xl border border-slate-800 p-6 shadow-2xl">
+          <div
+            data-testid="dashboard-preview"
+            className="glass rounded-2xl border border-slate-800 p-6 shadow-2xl"
+          >
             <div className="text-sm text-muted">Dashboard Preview</div>
             <div className="mt-4 space-y-4">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-secondary p-4">
                   <div className="text-xs text-muted">Total Balance</div>
-                  <div className="mt-2 text-2xl font-semibold text-white">₹42,500.00</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">
+                    {formatIN(153011000)}
+                  </div>
                 </div>
                 <div className="rounded-lg bg-secondary p-4">
                   <div className="text-xs text-muted">Accounts</div>
                   <div className="mt-2 text-2xl font-semibold text-white">3</div>
-                </div>
-                <div className="rounded-lg bg-secondary p-4">
-                  <div className="text-xs text-muted">Last Transfer</div>
-                  <div className="mt-2 text-2xl font-semibold text-success">₹1,250</div>
                 </div>
               </div>
               <div className="rounded-xl bg-secondary p-4">
@@ -67,11 +98,10 @@ const HomePage = ({ auth }) => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {[
             { value: "24/7", label: "Operator visibility" },
             { value: "3m", label: "Average review loop" },
-            { value: "12+", label: "Core product surfaces" },
             { value: "99.98%", label: "Settlement success view" },
           ].map((item) => (
             <div key={item.label} className="glass rounded-xl border border-slate-800 p-5">

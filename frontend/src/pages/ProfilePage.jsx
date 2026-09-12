@@ -39,6 +39,18 @@ const ProfilePage = ({ auth }) => {
     }
   };
 
+  // Logout lives inside Profile: revoke the refresh token server-side,
+  // then clear local auth state (Protected routes redirect to login).
+  const onLogout = async () => {
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (refreshToken) await api.post("/auth/logout", { refreshToken });
+    } catch {
+      // logout locally even if the server call fails
+    }
+    auth.logout();
+  };
+
   return (
     <div data-testid="profile-page">
       <NavBar auth={auth} />
@@ -50,6 +62,15 @@ const ProfilePage = ({ auth }) => {
           { label: "Transactions", href: "/transactions" },
           { label: "Profile", href: "/profile", active: true },
         ]}
+        actions={
+          <button
+            onClick={onLogout}
+            data-testid="logout-button"
+            className="rounded-lg border border-slate-700 px-4 py-2 text-sm hover:border-accent hover:text-accent"
+          >
+            Logout
+          </button>
+        }
       >
         <div className="glass max-w-lg rounded-xl border border-slate-800 p-6">
           <div className="space-y-4 text-sm text-slate-200">
