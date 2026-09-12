@@ -92,6 +92,7 @@ test.describe("auth flow", () => {
     await page.getByTestId("login-password").fill(password);
     await page.getByTestId("login-submit").click();
     await expect(page.getByTestId("dashboard")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("dashboard")).toContainText("₹");
     await expect(page.getByTestId("accounts-list")).toBeVisible();
     await expect(page.getByTestId("open-account-form")).toBeVisible();
   });

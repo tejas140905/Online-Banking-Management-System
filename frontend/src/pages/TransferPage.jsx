@@ -40,6 +40,11 @@ const TransferPage = ({ auth }) => {
       const payload = { ...form, amount: Number(form.amount) };
       const { data } = await api.post("/accounts/transfer", payload);
       setMessage(data.message);
+      setForm((f) => ({ ...f, amount: "" }));
+      // Balances changed on the server — refetch so every figure on this
+      // page (dropdown balances) matches the backend exactly.
+      const { data: accData } = await api.get("/accounts");
+      setAccounts(accData.accounts || []);
     } catch (err) {
       setError(err.response?.data?.message || "Transfer failed");
     } finally {

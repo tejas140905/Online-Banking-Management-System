@@ -107,8 +107,21 @@ const transferFunds = async (req, res, next) => {
     );
 
     await connection.commit();
+    const [[fromAfter]] = await pool.query("SELECT balance FROM accounts WHERE account_number = ?", [
+      fromAccount,
+    ]);
+    const [[toAfter]] = await pool.query("SELECT balance FROM accounts WHERE account_number = ?", [
+      toAccount,
+    ]);
     await audit(req.user.id, `transfer ${amount} from ${fromAccount} to ${toAccount}`);
-    return res.json({ message: "Transfer successful" });
+    return res.json({
+      message: "Transfer successful",
+      fromAccount,
+      toAccount,
+      amount,
+      fromBalance: Number(fromAfter.balance),
+      toBalance: Number(toAfter.balance),
+    });
   } catch (err) {
     await connection.rollback();
     return next(err);
