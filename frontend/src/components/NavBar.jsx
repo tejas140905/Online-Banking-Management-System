@@ -27,26 +27,9 @@ const NavBar = ({ auth }) => {
               </Link>
             </>
           ) : (
-            <>
-              <Link to="/platform" className="hover:text-accent">
-                Platform
-              </Link>
-              <Link to="/security" className="hover:text-accent">
-                Security
-              </Link>
-              <Link to="/operations" className="hover:text-accent">
-                Operations
-              </Link>
-              <Link to="/login" className="hover:text-accent">
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="rounded bg-accent px-3 py-1 font-semibold text-surface hover:bg-sky-400"
-              >
-                Open Account
-              </Link>
-            </>
+            <span className="text-xs uppercase tracking-wide text-muted">
+              Secure Digital Banking
+            </span>
           )}
         </nav>
       </div>

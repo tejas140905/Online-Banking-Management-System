@@ -11,21 +11,15 @@ test.describe("auth flow", () => {
     await expect(page.getByTestId("login-submit")).toBeVisible();
   });
 
-  test("landing page matches CREDX spec", async ({ page }) => {
+  test("entry point is login with registration, nothing else", async ({ page }) => {
     await page.goto("/");
-    const nav = page.getByTestId("landing-nav");
-    await expect(nav).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Home" })).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Dashboard" })).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Profile" })).toBeVisible();
-    await expect(page.getByTestId("hero-open-account")).toBeVisible();
-    await expect(page.getByTestId("hero-sign-in")).toBeVisible();
-    await expect(page.getByTestId("hero-admin")).toBeVisible();
-    const preview = page.getByTestId("dashboard-preview");
-    await expect(preview).toContainText("15,30,11,000.00");
-    await expect(preview).toContainText("Accounts");
-    await expect(page.getByTestId("platform-stats")).toBeVisible();
-    await expect(page.getByText("Bank-grade experience")).toBeVisible();
+    // Login form is the first and only thing guests see.
+    await expect(page.getByTestId("login-form")).toBeVisible();
+    await expect(page.getByTestId("login-email")).toBeVisible();
+    await expect(page.getByTestId("login-password")).toBeVisible();
+    await expect(page.getByTestId("login-submit")).toBeVisible();
+    // New user registration is reachable from the login page.
+    await expect(page.getByRole("link", { name: /open an account/i })).toBeVisible();
   });
 
   test("invalid credentials show a JSON-backed error message", async ({ page }) => {
