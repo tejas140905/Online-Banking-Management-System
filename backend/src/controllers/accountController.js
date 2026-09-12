@@ -1,14 +1,42 @@
 const { validationResult } = require("express-validator");
 const pool = require("../config/db");
 const { audit } = require("../utils/audit");
+const { generateAccountNumber } = require("../utils/accountNumber");
 
 const getAccounts = async (req, res, next) => {
   try {
     const [accounts] = await pool.query(
-      "SELECT account_number, balance FROM accounts WHERE user_id = ?",
+      "SELECT account_number, label, balance FROM accounts WHERE user_id = ?",
       [req.user.id],
     );
     return res.json({ accounts });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// Open an additional account for the signed-in user (multi-account support).
+// Retries on the rare random account-number collision.
+const createAccount = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  const label = (req.body?.label || "").trim() || null;
+  try {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const accountNumber = generateAccountNumber();
+      try {
+        await pool.query(
+          "INSERT INTO accounts (user_id, account_number, label, balance) VALUES (?, ?, ?, 0)",
+          [req.user.id, accountNumber, label],
+        );
+        await audit(req.user.id, `open account ${accountNumber}`);
+        return res.status(201).json({ accountNumber, label, balance: 0 });
+      } catch (err) {
+        if (err.code !== "ER_DUP_ENTRY" || attempt === 2) throw err;
+      }
+    }
   } catch (err) {
     return next(err);
   }
@@ -135,4 +163,4 @@ const getTransactions = async (req, res, next) => {
   }
 };
 
-module.exports = { getAccounts, transferFunds, getTransactions };
+module.exports = { getAccounts, createAccount, transferFunds, getTransactions };

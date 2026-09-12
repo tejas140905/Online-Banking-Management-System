@@ -18,6 +18,8 @@ test.describe("transfer flow", () => {
     await expect(page.getByTestId("transfer-to")).toBeVisible();
     await expect(page.getByTestId("transfer-amount")).toBeVisible();
     await expect(page.getByTestId("transfer-submit")).toBeVisible();
+    await expect(page.getByTestId("transfer-mode-self")).toBeVisible();
+    await expect(page.getByTestId("transfer-mode-another")).toBeVisible();
   });
 
   test("transfer requires authentication (API guard)", async ({ request }) => {

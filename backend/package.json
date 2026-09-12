@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test:api": "node --test tests/api.test.js",
+    "seed:demo": "node seed-demo.js",
     "lint": "echo \"No linter configured\""
   },
   "dependencies": {

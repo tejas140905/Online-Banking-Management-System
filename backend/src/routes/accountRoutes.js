@@ -1,11 +1,18 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { getAccounts, transferFunds, getTransactions } = require("../controllers/accountController");
+const { getAccounts, createAccount, transferFunds, getTransactions } = require("../controllers/accountController");
 const { authenticate } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.get("/", authenticate, getAccounts);
+
+router.post(
+  "/",
+  authenticate,
+  [body("label").optional().isLength({ max: 40 }).withMessage("Label max 40 chars")],
+  createAccount,
+);
 
 router.post(
   "/transfer",

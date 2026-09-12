@@ -136,8 +136,26 @@ describe("banking REST API", () => {
     assert.ok(body.pagination && body.pagination.limit === 5, "expected pagination metadata");
   });
 
-  it("change-password rejects wrong current password without state change", async (t) => {
+  it("authenticated user can open an additional account", async (t) => {
     if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
+    const login = await fetch(`${BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+    });
+    if (login.status === 500) return t.skip("MySQL not reachable");
+    const { token } = await json(login);
+    const res = await fetch(`${BASE}/accounts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ label: "Test Savings" }),
+    });
+    assert.equal(res.status, 201);
+    const body = await json(res);
+    assert.ok(body.accountNumber, "expected new account number");
+  });
+
+  it("change-password rejects wrong current password without state change", async (t) => {    if (!EMAIL || !PASSWORD) return t.skip("Set E2E_USER_EMAIL/E2E_USER_PASSWORD");
     const login = await fetch(`${BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

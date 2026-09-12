@@ -49,7 +49,7 @@ const unblockUser = async (req, res, next) => {
 const allAccounts = async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      "SELECT a.account_number, a.balance, u.name, u.email, u.status FROM accounts a JOIN users u ON a.user_id = u.id",
+      "SELECT a.account_number, a.label, a.balance, u.name, u.email, u.status FROM accounts a JOIN users u ON a.user_id = u.id",
     );
     return res.json({ accounts: rows });
   } catch (err) {

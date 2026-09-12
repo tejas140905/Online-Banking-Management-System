@@ -13,7 +13,7 @@ const getProfile = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
     const [accounts] = await pool.query(
-      "SELECT account_number, balance FROM accounts WHERE user_id = ?",
+      "SELECT account_number, label, balance FROM accounts WHERE user_id = ?",
       [req.user.id],
     );
     return res.json({ user: rows[0], accounts });

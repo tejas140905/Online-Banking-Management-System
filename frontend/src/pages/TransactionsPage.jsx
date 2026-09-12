@@ -6,16 +6,31 @@ import { formatINR } from "../utils/currency";
 
 const TransactionsPage = ({ auth }) => {
   const [rows, setRows] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [account, setAccount] = useState(() => localStorage.getItem("activeAccount") || "");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const limit = 10;
 
   useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const { data } = await api.get("/accounts");
+        setAccounts(data.accounts || []);
+      } catch {
+        // filter stays on All if accounts fail to load
+      }
+    };
+    fetchAccounts();
+  }, []);
+
+  useEffect(() => {
     const fetchTxns = async () => {
       setLoading(true);
       try {
-        const { data } = await api.get(`/accounts/transactions?page=${page}&limit=${limit}`);
+        const qs = new URLSearchParams({ page, limit, ...(account ? { account } : {}) });
+        const { data } = await api.get(`/accounts/transactions?${qs}`);
         setRows(data.transactions || []);
         setPages(data.pagination?.pages || 1);
       } finally {
@@ -23,7 +38,7 @@ const TransactionsPage = ({ auth }) => {
       }
     };
     fetchTxns();
-  }, [page]);
+  }, [page, account]);
 
   return (
     <div data-testid="transactions-page">
@@ -37,6 +52,27 @@ const TransactionsPage = ({ auth }) => {
           { label: "Profile", href: "/profile" },
         ]}
       >
+        <div className="mb-3 flex items-center gap-3 text-sm text-slate-200">
+          <label htmlFor="txn-account-filter">Account</label>
+          <select
+            id="txn-account-filter"
+            data-testid="transactions-account-filter"
+            value={account}
+            onChange={(e) => {
+              setAccount(e.target.value);
+              setPage(1);
+            }}
+            className="rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
+          >
+            <option value="">All accounts</option>
+            {accounts.map((acc) => (
+              <option key={acc.account_number} value={acc.account_number}>
+                {acc.label ? `${acc.label} — ` : ""}
+                {acc.account_number}
+              </option>
+            ))}
+          </select>
+        </div>
         <div data-testid="transactions-table" className="glass overflow-x-auto rounded-xl border border-slate-800">
           <table className="min-w-full divide-y divide-slate-800 text-sm">
             <thead className="bg-secondary text-slate-300">

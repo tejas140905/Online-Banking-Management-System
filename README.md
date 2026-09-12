@@ -12,9 +12,9 @@ Customers register, get approved by an admin, then sign in to view accounts, tra
 
 * Registration (pending admin approval)
 * JWT authentication with refresh-token rotation
-* Dashboard with balances
-* Account management
-* Fund transfer with server-side validation
+* Dashboard with all accounts, balances, and active-account switching
+* Open additional named accounts (Savings, Current, ...)
+* Fund transfer with server-side validation (self transfer between own accounts, or external)
 * Transaction history with pagination and filters
 * Profile management and password change
 
@@ -75,7 +75,8 @@ React form → client check → POST /api/accounts/transfer
 | GET | `/api/user/profile` | User | Profile + accounts |
 | PUT | `/api/user/profile` | User | Update name |
 | PUT | `/api/user/password` | User | Change password (revokes other sessions) |
-| GET | `/api/accounts` | User | List own accounts |
+| GET | `/api/accounts` | User | List own accounts (with labels) |
+| POST | `/api/accounts` | User | Open an additional named account |
 | POST | `/api/accounts/transfer` | User | Atomic fund transfer |
 | GET | `/api/accounts/transactions` | User | History + filters (`account,type,status,from,to`) + pagination (`page,limit`) |
 | GET | `/api/admin/users/pending` | Admin | Pending approvals |
@@ -154,6 +155,8 @@ npm run dev              # http://localhost:5173
 ```
 
 Demo: register a customer → sign in as `admin@bank.com` / `Admin@123` → approve the user → sign in as the customer.
+
+Demo profiles (multi-account showcase): `cd backend && npm run seed:demo` creates ACTIVE logins `aarav.demo@credx.bank` / `Diya Patel` (password `Demo@123`) — Aarav owns Savings + Current accounts for switching and self-transfer demos. Safe to re-run (skips existing).
 
 ## Environment Variables
 
