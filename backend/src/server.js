@@ -12,6 +12,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const platformRoutes = require("./routes/platformRoutes");
 const pool = require("./config/db");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
@@ -45,6 +46,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/accounts", accountRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/platform", platformRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

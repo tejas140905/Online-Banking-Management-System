@@ -15,6 +15,10 @@
       "request": { "method": "GET", "url": "{{baseUrl}}/health" }
     },
     {
+      "name": "Platform - Public stats",
+      "request": { "method": "GET", "url": "{{baseUrl}}/platform/stats" }
+    },
+    {
       "name": "Auth - Register",
       "request": {
         "method": "POST",

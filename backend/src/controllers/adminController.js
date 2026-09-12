@@ -67,21 +67,27 @@ const monitorTransactions = async (req, res, next) => {
     return next(err);
   }
 };
-
-const stats = async (req, res, next) => {  try {
+const stats = async (req, res, next) => {
+  try {
     const [[userCount]] = await pool.query(
       "SELECT COUNT(*) AS total_users FROM users WHERE role = 'USER'",
     );
+    const [[pendingCount]] = await pool.query(
+      "SELECT COUNT(*) AS pending_users FROM users WHERE status = 'PENDING'",
+    );
     const [[activeAccounts]] = await pool.query(
-      "SELECT COUNT(*) AS total_accounts FROM accounts",
+      "SELECT COUNT(*) AS total_accounts, COALESCE(SUM(balance), 0) AS total_balance FROM accounts",
     );
     const [[txnCount]] = await pool.query(
-      "SELECT COUNT(*) AS total_txns FROM transactions",
+      "SELECT COUNT(*) AS total_txns, COALESCE(SUM(CASE WHEN status = 'SUCCESS' THEN amount ELSE 0 END), 0) AS total_volume FROM transactions",
     );
     return res.json({
       totalUsers: userCount.total_users,
+      pendingUsers: pendingCount.pending_users,
       totalAccounts: activeAccounts.total_accounts,
+      totalBalance: Number(activeAccounts.total_balance),
       totalTransactions: txnCount.total_txns,
+      totalVolume: Number(txnCount.total_volume),
     });
   } catch (err) {
     return next(err);

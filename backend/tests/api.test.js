@@ -58,6 +58,15 @@ describe("banking REST API", () => {
     assert.equal(res.status, 401);
   });
 
+  it("public platform stats expose aggregates without auth", async () => {
+    const res = await fetch(`${BASE}/platform/stats`);
+    assert.equal(res.status, 200);
+    const body = await json(res);
+    assert.ok(typeof body.customers === "number", "expected customer count");
+    assert.ok(typeof body.accounts === "number", "expected account count");
+    assert.ok(typeof body.successRate === "number", "expected success rate");
+  });
+
   it("login with wrong credentials returns 401 (needs DB)", async (t) => {
     const res = await fetch(`${BASE}/auth/login`, {
       method: "POST",

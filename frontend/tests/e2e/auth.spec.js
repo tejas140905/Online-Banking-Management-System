@@ -24,6 +24,7 @@ test.describe("auth flow", () => {
     const preview = page.getByTestId("dashboard-preview");
     await expect(preview).toContainText("15,30,11,000.00");
     await expect(preview).toContainText("Accounts");
+    await expect(page.getByTestId("platform-stats")).toBeVisible();
     await expect(page.getByText("Bank-grade experience")).toBeVisible();
   });
 

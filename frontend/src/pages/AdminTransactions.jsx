@@ -17,8 +17,15 @@ const AdminTransactions = () => {
     fetchData();
   }, []);
 
+  const success = rows.length
+    ? Math.round((rows.filter((r) => r.status === "SUCCESS").length / rows.length) * 10000) / 100
+    : 100;
+  const volume = rows
+    .filter((r) => r.status === "SUCCESS")
+    .reduce((s, r) => s + Number(r.amount || 0), 0);
+
   return (
-    <div>
+    <div data-testid="admin-transactions-page">
       <NavBar auth={{ user: { role: "ADMIN" } }} />
       <PageShell
         title="Transaction Monitoring"
@@ -29,6 +36,20 @@ const AdminTransactions = () => {
           { label: "Transactions", href: "/admin/transactions", active: true },
         ]}
       >
+        <div
+          data-testid="admin-txns-summary"
+          className="mb-3 flex flex-wrap gap-4 text-sm text-slate-300"
+        >
+          <span>
+            Monitored: <strong className="text-white">{rows.length}</strong>
+          </span>
+          <span>
+            Success rate: <strong className="text-white">{success}%</strong>
+          </span>
+          <span>
+            Volume: <strong className="text-white">{formatINR(volume)}</strong>
+          </span>
+        </div>
         <div className="glass overflow-x-auto rounded-xl border border-slate-800">
           <table className="min-w-full divide-y divide-slate-800 text-sm">
             <thead className="bg-secondary text-slate-300">
@@ -37,6 +58,7 @@ const AdminTransactions = () => {
                 <th className="px-4 py-3 text-left font-medium">From</th>
                 <th className="px-4 py-3 text-left font-medium">To</th>
                 <th className="px-4 py-3 text-left font-medium">Amount</th>
+                <th className="px-4 py-3 text-left font-medium">Type</th>
                 <th className="px-4 py-3 text-left font-medium">Status</th>
                 <th className="px-4 py-3 text-left font-medium">Time</th>
               </tr>
@@ -44,7 +66,7 @@ const AdminTransactions = () => {
             <tbody className="divide-y divide-slate-800">
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-3 text-muted">
+                  <td colSpan={7} className="px-4 py-3 text-muted">
                     Loading...
                   </td>
                 </tr>
@@ -56,6 +78,15 @@ const AdminTransactions = () => {
                     <td className="px-4 py-3 text-slate-200">{row.from_account}</td>
                     <td className="px-4 py-3 text-slate-200">{row.to_account}</td>
                     <td className="px-4 py-3 font-semibold text-white">{formatINR(row.amount)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs ${
+                          row.type === "CREDIT" ? "bg-success/10 text-success" : "bg-accent/10 text-accent"
+                        }`}
+                      >
+                        {row.type}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-1 text-xs ${
@@ -74,7 +105,7 @@ const AdminTransactions = () => {
                 ))}
               {!loading && rows.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-3 text-muted">
+                  <td colSpan={7} className="px-4 py-3 text-muted">
                     No transactions recorded.
                   </td>
                 </tr>

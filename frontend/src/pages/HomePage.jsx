@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../api/client";
 import { formatIN } from "../utils/currency";
 
 // Landing nav for CREDX Digital Banking (spec: Home, Dashboard, Profile).
@@ -29,6 +31,29 @@ const LandingNav = () => (
 );
 
 const HomePage = () => {
+  // Live bank details; static fallbacks keep the page meaningful offline.
+  const [platform, setPlatform] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await api.get("/platform/stats");
+        setPlatform(data);
+      } catch {
+        // fallbacks below
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const metrics = [
+    { value: platform ? String(platform.customers) : "—", label: "Customers onboard" },
+    { value: platform ? String(platform.accounts) : "—", label: "Live bank accounts" },
+    {
+      value: platform ? `${platform.successRate}%` : "—",
+      label: "Settlement success view",
+    },
+  ];
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary via-surface to-surface text-slate-100">
       <LandingNav />
@@ -98,12 +123,8 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {[
-            { value: "24/7", label: "Operator visibility" },
-            { value: "3m", label: "Average review loop" },
-            { value: "99.98%", label: "Settlement success view" },
-          ].map((item) => (
+        <div data-testid="platform-stats" className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {metrics.map((item) => (
             <div key={item.label} className="glass rounded-xl border border-slate-800 p-5">
               <div className="text-2xl font-semibold text-white">{item.value}</div>
               <div className="mt-1 text-sm text-slate-300">{item.label}</div>

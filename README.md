@@ -68,6 +68,7 @@ React form → client check → POST /api/accounts/transfer
 | Method | Endpoint | Auth | Description |
 | ------ | -------- | ---- | ----------- |
 | GET | `/api/health` | No | Health check |
+| GET | `/api/platform/stats` | No | Public aggregates (customers, accounts, success rate) for the homepage |
 | POST | `/api/auth/register` | No | Register customer (PENDING) + account number |
 | POST | `/api/auth/login` | No | JWT login + refresh token (ACTIVE users only) |
 | POST | `/api/auth/refresh` | No | Rotate refresh token → new JWT pair |
