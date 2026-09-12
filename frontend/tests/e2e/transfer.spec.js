@@ -55,10 +55,10 @@ test.describe("transfer flow", () => {
     await page.getByTestId("login-submit").click();
     await expect(page.getByTestId("dashboard")).toBeVisible({ timeout: 15000 });
     await page.goto("/transactions");
-    await expect(page.getByTestId("transactions-table")).toBeVisible();
-    await expect(page.getByTestId("transactions-page-info")).toBeVisible();
-    await expect(page.getByTestId("transactions-prev")).toBeVisible();
-    await expect(page.getByTestId("transactions-next")).toBeVisible();
+    await expect(page.getByTestId("transactions-page")).toBeVisible();
+    await expect(page.getByTestId("transactions-accounts")).toBeVisible();
+    const sections = page.locator('[data-testid^="transactions-account-"]');
+    await expect(sections.first()).toBeVisible();
   });
 
   test("profile exposes password change form after login", async ({ page }) => {

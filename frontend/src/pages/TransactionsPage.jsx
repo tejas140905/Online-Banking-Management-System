@@ -5,40 +5,27 @@ import NavBar from "../components/NavBar";
 import { formatINR } from "../utils/currency";
 
 const TransactionsPage = ({ auth }) => {
-  const [rows, setRows] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [account, setAccount] = useState(() => localStorage.getItem("activeAccount") || "");
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const limit = 10;
 
   useEffect(() => {
-    const fetchAccounts = async () => {
+    const fetchAll = async () => {
       try {
-        const { data } = await api.get("/accounts");
-        setAccounts(data.accounts || []);
-      } catch {
-        // filter stays on All if accounts fail to load
-      }
-    };
-    fetchAccounts();
-  }, []);
-
-  useEffect(() => {
-    const fetchTxns = async () => {
-      setLoading(true);
-      try {
-        const qs = new URLSearchParams({ page, limit, ...(account ? { account } : {}) });
-        const { data } = await api.get(`/accounts/transactions?${qs}`);
-        setRows(data.transactions || []);
-        setPages(data.pagination?.pages || 1);
+        const [{ data: accData }, { data: txnData }] = await Promise.all([
+          api.get("/accounts"),
+          api.get("/accounts/transactions?limit=100"),
+        ]);
+        setAccounts(accData.accounts || []);
+        setRows(txnData.transactions || []);
       } finally {
         setLoading(false);
       }
     };
-    fetchTxns();
-  }, [page, account]);
+    fetchAll();
+  }, []);
+
+  const forAccount = (num) => rows.filter((t) => t.from_account === num || t.to_account === num);
 
   return (
     <div data-testid="transactions-page">
@@ -52,112 +39,104 @@ const TransactionsPage = ({ auth }) => {
           { label: "Profile", href: "/profile" },
         ]}
       >
-        <div className="mb-3 flex items-center gap-3 text-sm text-slate-200">
-          <label htmlFor="txn-account-filter">Account</label>
-          <select
-            id="txn-account-filter"
-            data-testid="transactions-account-filter"
-            value={account}
-            onChange={(e) => {
-              setAccount(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
-          >
-            <option value="">All accounts</option>
-            {accounts.map((acc) => (
-              <option key={acc.account_number} value={acc.account_number}>
-                {acc.label ? `${acc.label} — ` : ""}
-                {acc.account_number}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div data-testid="transactions-table" className="glass overflow-x-auto rounded-xl border border-slate-800">
-          <table className="min-w-full divide-y divide-slate-800 text-sm">
-            <thead className="bg-secondary text-slate-300">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">Txn ID</th>
-                <th className="px-4 py-3 text-left font-medium">From</th>
-                <th className="px-4 py-3 text-left font-medium">To</th>
-                <th className="px-4 py-3 text-left font-medium">Amount</th>
-                <th className="px-4 py-3 text-left font-medium">Type</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Time</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {loading && (
-                <tr>
-                  <td className="px-4 py-3 text-muted" colSpan={7}>
-                    Loading...
-                  </td>
-                </tr>
-              )}
-              {!loading &&
-                rows.map((txn) => (
-                  <tr key={txn.txn_id} className="hover:bg-secondary/60">
-                    <td className="px-4 py-3 text-slate-200">{txn.txn_id}</td>
-                    <td className="px-4 py-3 text-slate-200">{txn.from_account}</td>
-                    <td className="px-4 py-3 text-slate-200">{txn.to_account}</td>
-                    <td className="px-4 py-3 font-semibold text-white">{formatINR(txn.amount)}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs ${
-                          txn.type === "CREDIT" ? "bg-success/10 text-success" : "bg-accent/10 text-accent"
-                        }`}
-                      >
-                        {txn.type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs ${
-                          txn.status === "SUCCESS"
-                            ? "bg-success/10 text-success"
-                            : "bg-danger/10 text-danger"
-                        }`}
-                      >
-                        {txn.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-300">
-                      {new Date(txn.created_at).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              {!loading && rows.length === 0 && (
-                <tr>
-                  <td className="px-4 py-3 text-muted" colSpan={7}>
-                    No transactions yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-3 flex items-center justify-between text-sm text-slate-300">
-          <span data-testid="transactions-page-info">
-            Page {page} of {pages}
-          </span>
-          <div className="space-x-2">
-            <button
-              data-testid="transactions-prev"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              className="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40"
-            >
-              Prev
-            </button>
-            <button
-              data-testid="transactions-next"
-              disabled={page >= pages}
-              onClick={() => setPage((p) => p + 1)}
-              className="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
+        {loading && <div className="text-sm text-muted">Loading...</div>}
+        {!loading && accounts.length === 0 && (
+          <div className="text-sm text-muted">No accounts yet.</div>
+        )}
+        <div data-testid="transactions-accounts" className="space-y-6">
+          {accounts.map((acc) => {
+            const txns = forAccount(acc.account_number);
+            const received = txns
+              .filter((t) => t.to_account === acc.account_number)
+              .reduce((s, t) => s + Number(t.amount || 0), 0);
+            const sent = txns
+              .filter((t) => t.from_account === acc.account_number)
+              .reduce((s, t) => s + Number(t.amount || 0), 0);
+            return (
+              <section
+                key={acc.account_number}
+                data-testid={`transactions-account-${acc.account_number}`}
+                className="glass overflow-hidden rounded-xl border border-slate-800"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 bg-secondary px-4 py-3">
+                  <div>
+                    <div className="text-sm font-semibold text-white">
+                      {acc.label || "Account"} — {acc.account_number}
+                    </div>
+                    <div className="text-xs text-muted">
+                      Balance {formatINR(acc.balance)} • {txns.length} transaction(s)
+                    </div>
+                  </div>
+                  <div className="flex gap-4 text-xs">
+                    <span className="text-success">In {formatINR(received)}</span>
+                    <span className="text-danger">Out {formatINR(sent)}</span>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-800 text-sm">
+                    <thead className="bg-secondary/50 text-slate-300">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-medium">Txn ID</th>
+                        <th className="px-4 py-3 text-left font-medium">Counterparty</th>
+                        <th className="px-4 py-3 text-left font-medium">Flow</th>
+                        <th className="px-4 py-3 text-left font-medium">Amount</th>
+                        <th className="px-4 py-3 text-left font-medium">Status</th>
+                        <th className="px-4 py-3 text-left font-medium">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {txns.map((txn) => {
+                        const incoming = txn.to_account === acc.account_number;
+                        return (
+                          <tr key={`${acc.account_number}-${txn.txn_id}`} className="hover:bg-secondary/60">
+                            <td className="px-4 py-3 text-slate-200">{txn.txn_id}</td>
+                            <td className="px-4 py-3 text-slate-200">
+                              {incoming ? txn.from_account : txn.to_account}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`rounded-full px-2 py-1 text-xs ${
+                                  incoming
+                                    ? "bg-success/10 text-success"
+                                    : "bg-accent/10 text-accent"
+                                }`}
+                              >
+                                {incoming ? "Received" : "Sent"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 font-semibold text-white">
+                              {formatINR(txn.amount)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`rounded-full px-2 py-1 text-xs ${
+                                  txn.status === "SUCCESS"
+                                    ? "bg-success/10 text-success"
+                                    : "bg-danger/10 text-danger"
+                                }`}
+                              >
+                                {txn.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-300">
+                              {new Date(txn.created_at).toLocaleString()}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {txns.length === 0 && (
+                        <tr>
+                          <td className="px-4 py-3 text-muted" colSpan={6}>
+                            No transactions for this account yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            );
+          })}
         </div>
       </PageShell>
     </div>
