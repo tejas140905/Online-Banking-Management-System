@@ -175,6 +175,25 @@ Bank Main treasury: `node backend/seed-bank-main.js` ensures the admin holds exa
 Backend (`backend/.env`, see `backend/.env.example`): `PORT`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `REFRESH_EXPIRES_DAYS`, `AUTH_RATE_LIMIT_MAX`, `FRONTEND_URL`.
 Frontend (`frontend/.env`, see `frontend/.env.example`): `VITE_API_URL` (defaults to `http://localhost:4000/api`).
 
+## Live Bank Snapshot (demo data)
+
+The admin console (`/admin`) shows every account below live. Figures move as the demo runs; totals are always conserved by atomic transfers.
+
+| Account | Label | Holder | Role |
+|---|---|---|---|
+| 100000000001 | Bank Main | Super Admin | Treasury (owner-operated) |
+| 1288143496881 | Finance | Super Admin | Treasury sub-account |
+| 7087884933996 | Current | Tejas | Customer |
+| 8350299342181 | Savings | Tejas | Customer |
+| 9699101096506 | Current | Gunnu | Customer |
+| 9135474704627 | Joint | Gunnu | Customer |
+| 6251558026931 | — | vivek | Customer |
+
+* Bank total: ₹3,60,05,500.00 across 7 accounts.
+* Demo logins: `admin@bank.com` (owner), `tejas140905@gmail.com`, `Gunnu2003@gmail.com`, plus seeded `aarav.demo@credx.bank` / `diya.demo@credx.bank` (password `Demo@123`).
+* Owner model: the admin moves only his own treasury money; every currency endpoint enforces `source account must belong to caller`, so customer funds are technically untouchable by anyone else.
+* Money display: all figures render in INR via a shared `formatINR` helper (Indian digit grouping).
+
 ## Key Engineering Highlights
 
 * RESTful API architecture with JSON request/response contracts.
