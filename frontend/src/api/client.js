@@ -5,7 +5,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -25,24 +25,24 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       !original?._retried &&
       !url.includes("/auth/") &&
-      localStorage.getItem("refreshToken")
+      sessionStorage.getItem("refreshToken")
     ) {
       original._retried = true;
       try {
         refreshing =
           refreshing ||
           axios.post(`${api.defaults.baseURL}/auth/refresh`, {
-            refreshToken: localStorage.getItem("refreshToken"),
+            refreshToken: sessionStorage.getItem("refreshToken"),
           });
         const { data } = await refreshing;
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("refreshToken", data.refreshToken);
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("refreshToken", data.refreshToken);
         original.headers.Authorization = `Bearer ${data.token}`;
         return api(original);
       } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("user");
         window.location.href = "/login";
       } finally {
         refreshing = null;

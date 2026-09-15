@@ -43,7 +43,7 @@ const ProfilePage = ({ auth }) => {
   // then clear local auth state (Protected routes redirect to login).
   const onLogout = async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = sessionStorage.getItem("refreshToken");
       if (refreshToken) await api.post("/auth/logout", { refreshToken });
     } catch {
       // logout locally even if the server call fails

@@ -41,15 +41,15 @@ test.describe("auth flow", () => {
     // Customer session → own dashboard, not marketing content.
     await page.goto("/login");
     await page.evaluate(() => {
-      localStorage.setItem("token", "e2e-placeholder-token");
-      localStorage.setItem("user", JSON.stringify({ role: "USER", name: "E2E" }));
+      sessionStorage.setItem("token", "e2e-placeholder-token");
+      sessionStorage.setItem("user", JSON.stringify({ role: "USER", name: "E2E" }));
     });
     await page.goto("/");
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.getByTestId("dashboard")).toBeVisible();
     // Admin session → admin console.
     await page.evaluate(() => {
-      localStorage.setItem("user", JSON.stringify({ role: "ADMIN", name: "E2E" }));
+      sessionStorage.setItem("user", JSON.stringify({ role: "ADMIN", name: "E2E" }));
     });
     await page.goto("/");
     await expect(page).toHaveURL(/\/admin/);
@@ -59,8 +59,8 @@ test.describe("auth flow", () => {
     // Seed a (possibly expired) session directly in browser storage.
     await page.goto("/login");
     await page.evaluate(() => {
-      localStorage.setItem("token", "e2e-placeholder-token");
-      localStorage.setItem("user", JSON.stringify({ role: "USER", name: "E2E" }));
+      sessionStorage.setItem("token", "e2e-placeholder-token");
+      sessionStorage.setItem("user", JSON.stringify({ role: "USER", name: "E2E" }));
     });
     // Logout lives inside Profile per the CREDX nav spec.
     await page.goto("/profile");
@@ -70,8 +70,8 @@ test.describe("auth flow", () => {
     } else {
       // Fallback if the API rejected the placeholder token first.
       await page.evaluate(() => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
       });
       await page.goto("/dashboard");
     }

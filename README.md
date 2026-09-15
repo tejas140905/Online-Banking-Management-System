@@ -141,7 +141,7 @@ Key UI elements carry stable `data-testid` selectors (`login-email`, `login-pass
 * Elements: inspect DOM and verify `data-testid` selectors.
 * Console: debug JavaScript errors from the React app.
 * Network: inspect REST requests/responses as JSON (`/api/auth/login`, `/api/accounts/transfer`).
-* Application: inspect Local Storage for `token`/`user` auth state.
+* Application: inspect Session Storage for `token`/`user` auth state (sessions clear automatically when the browser window closes).
 
 ## Installation
 

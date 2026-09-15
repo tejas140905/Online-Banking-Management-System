@@ -9,7 +9,7 @@ import { formatINR } from "../utils/currency";
 const UserDashboard = ({ auth }) => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [active, setActive] = useState(() => localStorage.getItem("activeAccount") || "");
+  const [active, setActive] = useState(() => sessionStorage.getItem("activeAccount") || "");
   const [label, setLabel] = useState("");
   const [message, setMessage] = useState(null);
   const [pendingClosures, setPendingClosures] = useState([]);
@@ -23,12 +23,12 @@ const UserDashboard = ({ auth }) => {
       const list = data.accounts || [];
       setAccounts(list);
       setPendingClosures((closures.closures || []).filter((c) => c.status === "PENDING"));
-      if (!localStorage.getItem("activeAccount") && list.length) {
-        localStorage.setItem("activeAccount", list[0].account_number);
+      if (!sessionStorage.getItem("activeAccount") && list.length) {
+        sessionStorage.setItem("activeAccount", list[0].account_number);
         setActive(list[0].account_number);
       }
-      if (localStorage.getItem("activeAccount")) {
-        setActive(localStorage.getItem("activeAccount"));
+      if (sessionStorage.getItem("activeAccount")) {
+        setActive(sessionStorage.getItem("activeAccount"));
       }
     } catch (err) {
       // ignore in UI for brevity
@@ -42,7 +42,7 @@ const UserDashboard = ({ auth }) => {
   }, []);
 
   const select = (num) => {
-    localStorage.setItem("activeAccount", num);
+    sessionStorage.setItem("activeAccount", num);
     setActive(num);
   };
 

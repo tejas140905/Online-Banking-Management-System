@@ -8,7 +8,7 @@ const TransferPage = ({ auth }) => {
   const [accounts, setAccounts] = useState([]);
   const [mode, setMode] = useState("self");
   const [form, setForm] = useState({
-    fromAccount: localStorage.getItem("activeAccount") || "",
+    fromAccount: sessionStorage.getItem("activeAccount") || "",
     toAccount: "",
     amount: "",
   });
@@ -23,7 +23,7 @@ const TransferPage = ({ auth }) => {
       setAccounts(list);
       setForm((f) => ({
         ...f,
-        fromAccount: f.fromAccount || localStorage.getItem("activeAccount") || list[0]?.account_number || "",
+        fromAccount: f.fromAccount || sessionStorage.getItem("activeAccount") || list[0]?.account_number || "",
       }));
     };
     fetchAccounts();

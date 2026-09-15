@@ -17,8 +17,8 @@ const LoginPage = ({ auth }) => {
     setError(null);
     try {
       const { data } = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", data.token);
-      if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+      sessionStorage.setItem("token", data.token);
+      if (data.refreshToken) sessionStorage.setItem("refreshToken", data.refreshToken);
       auth.setUser(data.user);
       // Role-based landing: admins go straight to the console where they can
       // see everything happening; customers go to their own dashboard.

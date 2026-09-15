@@ -16,8 +16,8 @@ import AdminTransactions from "./pages/AdminTransactions";
 
 const Protected = ({ children, role }) => {
   const location = useLocation();
-  const token = localStorage.getItem("token");
-  const user = token ? JSON.parse(localStorage.getItem("user") || "{}") : null;
+  const token = sessionStorage.getItem("token");
+  const user = token ? JSON.parse(sessionStorage.getItem("user") || "{}") : null;
   if (!token) return <Navigate to="/login" state={{ from: location }} replace />;
   if (role && user?.role !== role) return <Navigate to="/" replace />;
   return children;
@@ -26,8 +26,8 @@ const Protected = ({ children, role }) => {
 // Entry point: guests see only the login page (with registration link).
 // Signed-in customers go straight to their dashboard, admins to the console.
 const LandingRoute = ({ auth }) => {
-  const token = localStorage.getItem("token");
-  const user = token ? JSON.parse(localStorage.getItem("user") || "{}") : null;
+  const token = sessionStorage.getItem("token");
+  const user = token ? JSON.parse(sessionStorage.getItem("user") || "{}") : null;
   if (token && user?.role === "ADMIN") return <Navigate to="/admin" replace />;
   if (token) return <Navigate to="/dashboard" replace />;
   return <LoginPage auth={auth} />;
@@ -37,7 +37,7 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
+    const stored = sessionStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
@@ -46,12 +46,12 @@ function App() {
       user,
       setUser: (payload) => {
         setUser(payload);
-        if (payload) localStorage.setItem("user", JSON.stringify(payload));
+        if (payload) sessionStorage.setItem("user", JSON.stringify(payload));
       },
       logout: () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("user");
         setUser(null);
       },
     }),
