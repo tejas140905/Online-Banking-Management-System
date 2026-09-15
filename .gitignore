@@ -77,3 +77,6 @@ playwright-report/
 *.pem
 *.key
 *.cert
+
+# Local duplicate clones (never commit nested repos)
+/Online-Banking-Management-System/
