@@ -175,6 +175,14 @@ Bank Main treasury: `node backend/seed-bank-main.js` ensures the admin holds exa
 Backend (`backend/.env`, see `backend/.env.example`): `PORT`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `REFRESH_EXPIRES_DAYS`, `AUTH_RATE_LIMIT_MAX`, `FRONTEND_URL`.
 Frontend (`frontend/.env`, see `frontend/.env.example`): `VITE_API_URL` (defaults to `http://localhost:4000/api`).
 
+## Going Live
+
+1. **Database:** create a hosted MySQL (Aiven / Railway), then import `backend/schema.sql` + `backend/migrations/*.sql` in order.
+2. **Backend (Render):** new Web Service from this repo — `render.yaml` at the root pre-fills build/start/health-check. Fill `DB_*`, set `JWT_SECRET` (or accept the generated value), and set `FRONTEND_URL` to the exact deployed frontend URL. `NODE_ENV=production` hides error stacks.
+3. **Frontend (Vercel):** import the repo with root directory `frontend`, set `VITE_API_URL=https://<backend>/api` **before building** (Vite embeds it at build time), deploy.
+4. **Verify:** `/api/health` shows `"db": "up"`; login page loads; admin login works; run `npm run test:api` against the live URL with `API_BASE_URL=https://<backend>/api`.
+5. **Notes:** Render free sleeps after idle (~50s cold start). Never commit `.env` — secrets live only in host dashboards. The backend refuses to boot without `JWT_SECRET`.
+
 ## Live Bank Snapshot (demo data)
 
 The admin console (`/admin`) shows every account below live. Figures move as the demo runs; totals are always conserved by atomic transfers.

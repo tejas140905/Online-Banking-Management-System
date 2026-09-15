@@ -18,6 +18,17 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
+// Required on hosts like Render/Railway: rate limiting and IPs must see the
+// real client through the platform proxy, not the proxy address itself.
+app.set("trust proxy", 1);
+
+if (!process.env.JWT_SECRET) {
+  // Fail fast with a clear message instead of minting insecure tokens.
+  // eslint-disable-next-line no-console
+  console.error("FATAL: JWT_SECRET is not set. Refusing to start.");
+  process.exit(1);
+}
+
 app.use(helmet());
 const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173,http://localhost:4173")
   .split(",")
