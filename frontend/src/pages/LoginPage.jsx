@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../api/client";
 import NavBar from "../components/NavBar";
+import { Card, BtnPrimary, inputCls } from "../components/ui";
 
 const LoginPage = ({ auth }) => {
   const [email, setEmail] = useState("");
@@ -32,51 +33,53 @@ const LoginPage = ({ auth }) => {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-slate-100">
+    <div className="min-h-screen bg-slate-100 text-slate-800">
       <NavBar auth={auth} />
-      <div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-16">
-        <div>
-          <h1 className="text-3xl font-semibold text-white">Welcome back</h1>
-          <p className="text-sm text-muted">Access your secure banking workspace.</p>
+      <div className="mx-auto flex max-w-md flex-col gap-4 px-4 py-12">
+        <div className="text-center">
+          <span className="inline-block rounded-lg bg-emerald-600 px-2.5 py-1 text-sm font-bold text-white">
+            CREDX
+          </span>
+          <h1 className="mt-3 text-2xl font-bold text-slate-900">Welcome back</h1>
+          <p className="text-sm text-slate-500">Access your secure banking workspace.</p>
         </div>
-        <form onSubmit={onSubmit} data-testid="login-form" className="glass rounded-xl border border-slate-800 p-6 shadow-xl">
-          <div className="space-y-4">
-            <label className="block text-sm text-slate-200">
+        <Card className="p-6">
+          <form onSubmit={onSubmit} data-testid="login-form" className="space-y-4">
+            <label className="block text-sm font-medium text-slate-700">
               Email
               <input
                 type="email"
                 data-testid="login-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white outline-none focus:border-accent"
+                className={inputCls}
                 required
               />
             </label>
-            <label className="block text-sm text-slate-200">
+            <label className="block text-sm font-medium text-slate-700">
               Password
               <input
                 type="password"
                 data-testid="login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white outline-none focus:border-accent"
+                className={inputCls}
                 required
               />
             </label>
-            {error && <div data-testid="login-error" className="text-sm text-danger">{error}</div>}
-            <button
-              type="submit"
-              data-testid="login-submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface hover:bg-sky-400 disabled:opacity-70"
-            >
+            {error && (
+              <div data-testid="login-error" className="text-sm text-red-600">
+                {error}
+              </div>
+            )}
+            <BtnPrimary type="submit" data-testid="login-submit" disabled={loading} className="w-full">
               {loading ? "Signing in..." : "Sign in"}
-            </button>
-          </div>
-        </form>
-        <p className="text-sm text-slate-400">
+            </BtnPrimary>
+          </form>
+        </Card>
+        <p className="text-center text-sm text-slate-500">
           New here?{" "}
-          <Link to="/register" className="text-accent">
+          <Link to="/register" className="font-semibold text-emerald-600">
             Open an account
           </Link>
         </p>

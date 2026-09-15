@@ -43,7 +43,7 @@ const AdminDashboard = () => {
         actions={
           <Link
             to="/admin/approvals"
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
+            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
           >
             Review Pending ({pending.length})
           </Link>
@@ -64,19 +64,19 @@ const AdminDashboard = () => {
           />
         </div>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="glass rounded-xl border border-slate-800 p-6">
-            <h3 className="text-lg font-semibold text-white">Operational guardrails</h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-900">Operational guardrails</h3>
+            <ul className="mt-3 space-y-2 text-sm text-slate-500">
               <li>• Approve or block accounts with audit logs.</li>
               <li>• Monitor recent transfers and anomalies.</li>
               <li>• RBAC enforced through JWT middleware.</li>
               <li>• {pending.length} approval(s) awaiting review.</li>
             </ul>
           </div>
-          <div className="glass rounded-xl border border-slate-800 p-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Recent activity</h3>
-              <Link to="/admin/transactions" className="text-sm text-accent">
+              <h3 className="text-lg font-semibold text-slate-900">Recent activity</h3>
+              <Link to="/admin/transactions" className="text-sm font-semibold text-emerald-600">
                 View all
               </Link>
             </div>
@@ -84,17 +84,17 @@ const AdminDashboard = () => {
               {activity.map((log) => (
                 <div
                   key={log.log_id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-secondary px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
                 >
-                  <span className="text-slate-200">
+                  <span className="text-slate-700">
                     {log.admin_name} — {log.action}
                   </span>
-                  <span className="whitespace-nowrap text-xs text-muted">
+                  <span className="whitespace-nowrap text-xs text-slate-500">
                     {new Date(log.created_at).toLocaleString()}
                   </span>
                 </div>
               ))}
-              {!activity.length && <div className="text-sm text-muted">No activity yet.</div>}
+              {!activity.length && <div className="text-sm text-slate-500">No activity yet.</div>}
             </div>
           </div>
         </div>

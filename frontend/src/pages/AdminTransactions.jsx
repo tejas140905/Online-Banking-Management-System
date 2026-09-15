@@ -38,21 +38,21 @@ const AdminTransactions = () => {
       >
         <div
           data-testid="admin-txns-summary"
-          className="mb-3 flex flex-wrap gap-4 text-sm text-slate-300"
+          className="mb-3 flex flex-wrap gap-4 text-sm text-slate-500"
         >
           <span>
-            Monitored: <strong className="text-white">{rows.length}</strong>
+            Monitored: <strong className="text-slate-900">{rows.length}</strong>
           </span>
           <span>
-            Success rate: <strong className="text-white">{success}%</strong>
+            Success rate: <strong className="text-slate-900">{success}%</strong>
           </span>
           <span>
-            Volume: <strong className="text-white">{formatINR(volume)}</strong>
+            Volume: <strong className="text-slate-900">{formatINR(volume)}</strong>
           </span>
         </div>
-        <div className="glass overflow-x-auto rounded-xl border border-slate-800">
-          <table className="min-w-full divide-y divide-slate-800 text-sm">
-            <thead className="bg-secondary text-slate-300">
+        <div className="bg-white shadow-sm overflow-x-auto rounded-xl border border-slate-200">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-slate-500">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Txn</th>
                 <th className="px-4 py-3 text-left font-medium">From</th>
@@ -63,31 +63,31 @@ const AdminTransactions = () => {
                 <th className="px-4 py-3 text-left font-medium">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-200">
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-3 text-muted">
+                  <td colSpan={7} className="px-4 py-3 text-slate-500">
                     Loading...
                   </td>
                 </tr>
               )}
               {!loading &&
                 rows.map((row) => (
-                  <tr key={row.txn_id} className="hover:bg-secondary/60">
-                    <td className="px-4 py-3 text-slate-200">{row.txn_id}</td>
-                    <td className="px-4 py-3 text-slate-200">
+                  <tr key={row.txn_id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 text-slate-700">{row.txn_id}</td>
+                    <td className="px-4 py-3 text-slate-700">
                       <div>{row.from_account}</div>
-                      <div className="text-xs text-muted">{row.from_name || "CREDX Bank"}</div>
+                      <div className="text-xs text-slate-500">{row.from_name || "CREDX Bank"}</div>
                     </td>
-                    <td className="px-4 py-3 text-slate-200">
+                    <td className="px-4 py-3 text-slate-700">
                       <div>{row.to_account}</div>
-                      <div className="text-xs text-muted">{row.to_name || "CREDX Bank"}</div>
+                      <div className="text-xs text-slate-500">{row.to_name || "CREDX Bank"}</div>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-white">{formatINR(row.amount)}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">{formatINR(row.amount)}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-1 text-xs ${
-                          row.type === "CREDIT" ? "bg-success/10 text-success" : "bg-accent/10 text-accent"
+                          row.type === "CREDIT" ? "bg-success/10 text-success" : "bg-sky-100 text-sky-700"
                         }`}
                       >
                         {row.type}
@@ -104,14 +104,14 @@ const AdminTransactions = () => {
                         {row.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-300">
+                    <td className="px-4 py-3 text-slate-500">
                       {new Date(row.created_at).toLocaleString()}
                     </td>
                   </tr>
                 ))}
               {!loading && rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-3 text-muted">
+                  <td colSpan={7} className="px-4 py-3 text-slate-500">
                     No transactions recorded.
                   </td>
                 </tr>

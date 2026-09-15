@@ -30,7 +30,7 @@ const UserDashboard = ({ auth }) => {
       const [{ data }, { data: closures }, { data: txns }] = await Promise.all([
         api.get("/accounts"),
         api.get("/accounts/closures/mine"),
-        api.get("/accounts/transactions?limit=8"),
+        api.get("/accounts/transactions?limit=100"),
       ]);
       const list = data.accounts || [];
       setAccounts(list);
@@ -109,6 +109,16 @@ const UserDashboard = ({ auth }) => {
   const activeAcc = accounts.find((a) => a.account_number === active) || accounts[0];
   const ownTargets = accounts.filter((a) => a.account_number !== active);
   const maxTxn = Math.max(...recent.map((t) => Number(t.amount || 0)), 1);
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const monthTxns = recent.filter((t) => new Date(t.created_at) >= monthStart);
+  const monthIn = monthTxns
+    .filter((t) => accounts.some((a) => a.account_number === t.to_account))
+    .reduce((s, t) => s + Number(t.amount || 0), 0);
+  const monthOut = monthTxns
+    .filter((t) => accounts.some((a) => a.account_number === t.from_account))
+    .reduce((s, t) => s + Number(t.amount || 0), 0);
   const pendingFor = (num) => pendingClosures.some((c) => c.account_number === num);
 
   return (
@@ -132,26 +142,56 @@ const UserDashboard = ({ auth }) => {
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           {/* LEFT 2/3 */}
           <div className="flex flex-col gap-3 lg:col-span-2">
-            <div className="rounded-xl bg-white p-4 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="overflow-hidden rounded-xl bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-5 text-white shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="text-xs text-slate-500">Total Balance</div>
-                  <div className="text-3xl font-bold tabular-nums text-slate-900">
+                  <div className="text-xs uppercase tracking-widest text-emerald-100">Total Balance</div>
+                  <div className="mt-1 text-4xl font-bold tabular-nums">
                     {loading ? "..." : formatINR(total)}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full bg-white/20 px-2.5 py-1">
+                      In this month {formatINR(monthIn)}
+                    </span>
+                    <span className="rounded-full bg-white/20 px-2.5 py-1">
+                      Out this month {formatINR(monthOut)}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                  <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold">
                     {auth.user?.role || "USER"}
                   </span>
                   <Link
                     to="/transfer"
-                    className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500"
+                    className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50"
                   >
                     New Transfer
                   </Link>
                 </div>
               </div>
+              {total > 0 && (
+                <div className="mt-4">
+                  <div className="flex h-2 w-full gap-1 overflow-hidden rounded-full">
+                    {accounts.map((a, i) => (
+                      <div
+                        key={a.account_number}
+                        title={`${a.label || a.account_number}: ${formatINR(a.balance)}`}
+                        className={i % 2 === 0 ? "bg-white/90" : "bg-emerald-200"}
+                        style={{ width: `${(Number(a.balance) / total) * 100}%` }}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-emerald-50">
+                    {accounts.map((a) => (
+                      <span key={a.account_number}>
+                        {a.label || a.account_number.slice(-4)} •{" "}
+                        {total ? Math.round((Number(a.balance) / total) * 100) : 0}%
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/client";
 import PageShell from "../components/PageShell";
 import NavBar from "../components/NavBar";
+import { Card, BtnPrimary, Badge, inputCls } from "../components/ui";
 
 const ProfilePage = ({ auth }) => {
   const [profile, setProfile] = useState(null);
@@ -66,76 +67,82 @@ const ProfilePage = ({ auth }) => {
           <button
             onClick={onLogout}
             data-testid="logout-button"
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm hover:border-accent hover:text-accent"
+            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:border-red-400 hover:text-red-600"
           >
             Logout
           </button>
         }
       >
-        <div className="glass max-w-lg rounded-xl border border-slate-800 p-6">
-          <div className="space-y-4 text-sm text-slate-200">
-            <div>
-              <div className="text-muted">Email</div>
-              <div className="text-white">{profile?.email || "..."}</div>
+        <div className="grid max-w-2xl grid-cols-1 gap-4">
+          <Card className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-600 text-lg font-bold text-white">
+                {(profile?.name || "?").charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="font-bold text-slate-900">{profile?.name || "..."}</div>
+                <div className="text-sm text-slate-500">{profile?.email || "..."}</div>
+              </div>
+              <span className="ml-auto">
+                <Badge tone="info">{profile?.role || "USER"}</Badge>
+              </span>
             </div>
-            <div>
-              <div className="text-muted">Role</div>
-              <div className="text-white">{profile?.role}</div>
-            </div>
-            <form onSubmit={onSubmit} data-testid="profile-form" className="space-y-3">
-              <label className="block text-sm text-slate-200">
+            <form onSubmit={onSubmit} data-testid="profile-form" className="mt-4 space-y-3">
+              <label className="block text-sm font-medium text-slate-700">
                 Full name
                 <input
                   data-testid="profile-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
+                  className={inputCls}
                 />
               </label>
-              {message && <div className="text-success">{message}</div>}
-              <button
-                type="submit"
-                data-testid="profile-save"
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
-              >
+              {message && <div className="text-sm text-emerald-600">{message}</div>}
+              <BtnPrimary type="submit" data-testid="profile-save">
                 Save changes
-              </button>
+              </BtnPrimary>
             </form>
-            <form onSubmit={onPasswordChange} data-testid="password-form" className="space-y-3 border-t border-slate-800 pt-4">
-              <div className="text-sm font-semibold text-white">Change password</div>
-              <label className="block text-sm text-slate-200">
+          </Card>
+          <Card className="p-6">
+            <div className="text-sm font-bold text-slate-900">Change password</div>
+            <form onSubmit={onPasswordChange} data-testid="password-form" className="mt-3 space-y-3">
+              <label className="block text-sm font-medium text-slate-700">
                 Current password
                 <input
                   type="password"
                   data-testid="password-current"
                   value={pw.currentPassword}
                   onChange={(e) => setPw({ ...pw, currentPassword: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
+                  className={inputCls}
                   required
                 />
               </label>
-              <label className="block text-sm text-slate-200">
+              <label className="block text-sm font-medium text-slate-700">
                 New password
                 <input
                   type="password"
                   data-testid="password-new"
                   value={pw.newPassword}
                   onChange={(e) => setPw({ ...pw, newPassword: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white focus:border-accent"
+                  className={inputCls}
                   required
                 />
               </label>
-              {pwMessage && <div data-testid="password-success" className="text-success">{pwMessage}</div>}
-              {pwError && <div data-testid="password-error" className="text-danger">{pwError}</div>}
-              <button
-                type="submit"
-                data-testid="password-submit"
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface"
-              >
+              {pwMessage && (
+                <div data-testid="password-success" className="text-sm text-emerald-600">
+                  {pwMessage}
+                </div>
+              )}
+              {pwError && (
+                <div data-testid="password-error" className="text-sm text-red-600">
+                  {pwError}
+                </div>
+              )}
+              <BtnPrimary type="submit" data-testid="password-submit">
                 Change password
-              </button>
+              </BtnPrimary>
             </form>
-          </div>
+          </Card>
         </div>
       </PageShell>
     </div>

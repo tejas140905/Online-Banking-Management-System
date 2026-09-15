@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
 import NavBar from "../components/NavBar";
+import { Card, BtnPrimary, inputCls } from "../components/ui";
 
 const RegisterPage = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -27,29 +28,29 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-slate-100">
+    <div className="min-h-screen bg-slate-100 text-slate-800">
       <NavBar />
-      <div className="mx-auto flex max-w-xl flex-col gap-6 px-4 py-16">
-        <div>
-          <h1 className="text-3xl font-semibold text-white">Open a secure account</h1>
-          <p className="text-sm text-muted">
+      <div className="mx-auto flex max-w-md flex-col gap-4 px-4 py-12">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900">Open a secure account</h1>
+          <p className="text-sm text-slate-500">
             Submit your details. An admin will verify and activate access.
           </p>
         </div>
-        <form onSubmit={onSubmit} data-testid="register-form" className="glass rounded-xl border border-slate-800 p-6 shadow-xl">
-          <div className="space-y-4">
-            <label className="block text-sm text-slate-200">
+        <Card className="p-6">
+          <form onSubmit={onSubmit} data-testid="register-form" className="space-y-4">
+            <label className="block text-sm font-medium text-slate-700">
               Full name
               <input
                 name="name"
                 data-testid="register-name"
                 value={form.name}
                 onChange={onChange}
-                className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white outline-none focus:border-accent"
+                className={inputCls}
                 required
               />
             </label>
-            <label className="block text-sm text-slate-200">
+            <label className="block text-sm font-medium text-slate-700">
               Work email
               <input
                 type="email"
@@ -57,11 +58,11 @@ const RegisterPage = () => {
                 data-testid="register-email"
                 value={form.email}
                 onChange={onChange}
-                className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white outline-none focus:border-accent"
+                className={inputCls}
                 required
               />
             </label>
-            <label className="block text-sm text-slate-200">
+            <label className="block text-sm font-medium text-slate-700">
               Password
               <input
                 type="password"
@@ -69,25 +70,28 @@ const RegisterPage = () => {
                 data-testid="register-password"
                 value={form.password}
                 onChange={onChange}
-                className="mt-1 w-full rounded-lg border border-slate-800 bg-secondary px-3 py-2 text-white outline-none focus:border-accent"
+                className={inputCls}
                 required
               />
             </label>
-            {message && <div data-testid="register-success" className="text-sm text-success">{message}</div>}
-            {error && <div data-testid="register-error" className="text-sm text-danger">{error}</div>}
-            <button
-              type="submit"
-              data-testid="register-submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface hover:bg-sky-400 disabled:opacity-70"
-            >
+            {message && (
+              <div data-testid="register-success" className="text-sm text-emerald-600">
+                {message}
+              </div>
+            )}
+            {error && (
+              <div data-testid="register-error" className="text-sm text-red-600">
+                {error}
+              </div>
+            )}
+            <BtnPrimary type="submit" data-testid="register-submit" disabled={loading} className="w-full">
               {loading ? "Submitting..." : "Submit for approval"}
-            </button>
-          </div>
-        </form>
-        <p className="text-sm text-slate-400">
+            </BtnPrimary>
+          </form>
+        </Card>
+        <p className="text-center text-sm text-slate-500">
           Already verified?{" "}
-          <Link to="/login" className="text-accent">
+          <Link to="/login" className="font-semibold text-emerald-600">
             Sign in
           </Link>
         </p>

@@ -1,7 +1,7 @@
 const StatCard = ({ label, value, hint }) => (
-  <div className="glass rounded-xl border border-slate-800 p-4 shadow-lg">
-    <div className="text-sm text-muted">{label}</div>
-    <div className="mt-2 text-2xl font-semibold text-white">{value}</div>
+  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="text-xs text-slate-500">{label}</div>
+    <div className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{value}</div>
     {hint && <div className="mt-1 text-xs text-slate-400">{hint}</div>}
   </div>
 );

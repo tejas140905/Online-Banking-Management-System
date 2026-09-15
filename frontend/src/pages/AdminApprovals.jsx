@@ -46,12 +46,12 @@ const AdminApprovals = () => {
           { label: "Transactions", href: "/admin/transactions" },
         ]}
       >
-        <div data-testid="admin-closures" className="glass mb-4 overflow-x-auto rounded-xl border border-slate-800">
-          <div className="border-b border-slate-800 px-4 py-3 text-sm font-semibold text-white">
+        <div data-testid="admin-closures" className="mb-4 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 px-4 py-3 text-sm font-bold text-slate-900">
             Account closure requests
           </div>
-          <table className="min-w-full divide-y divide-slate-800 text-sm">
-            <thead className="bg-secondary text-slate-300">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-slate-500">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Account</th>
                 <th className="px-4 py-3 text-left font-medium">Holder</th>
@@ -59,14 +59,14 @@ const AdminApprovals = () => {
                 <th className="px-4 py-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-200">
               {closures.map((c) => (
-                <tr key={c.id} className="hover:bg-secondary/60">
-                  <td className="px-4 py-3 text-slate-200">{c.account_number}</td>
-                  <td className="px-4 py-3 text-slate-200">
+                <tr key={c.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 text-slate-700">{c.account_number}</td>
+                  <td className="px-4 py-3 text-slate-700">
                     {c.name} ({c.email})
                   </td>
-                  <td className="px-4 py-3 text-slate-200">{c.balance ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-700">{c.balance ?? "—"}</td>
                   <td className="px-4 py-3 space-x-2">
                     <button
                       onClick={() => decideClosure(c.id, "approve")}
@@ -87,7 +87,7 @@ const AdminApprovals = () => {
               ))}
               {!closures.length && (
                 <tr>
-                  <td className="px-4 py-3 text-muted" colSpan={4}>
+                  <td className="px-4 py-3 text-slate-500" colSpan={4}>
                     No closure requests.
                   </td>
                 </tr>
@@ -95,9 +95,9 @@ const AdminApprovals = () => {
             </tbody>
           </table>
         </div>
-        <div className="glass overflow-x-auto rounded-xl border border-slate-800">
-          <table className="min-w-full divide-y divide-slate-800 text-sm">
-            <thead className="bg-secondary text-slate-300">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-slate-500">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Name</th>
                 <th className="px-4 py-3 text-left font-medium">Email</th>
@@ -105,12 +105,12 @@ const AdminApprovals = () => {
                 <th className="px-4 py-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-200">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-secondary/60">
-                  <td className="px-4 py-3 text-slate-200">{user.name}</td>
-                  <td className="px-4 py-3 text-slate-200">{user.email}</td>
-                  <td className="px-4 py-3 text-muted">{user.status}</td>
+                <tr key={user.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 text-slate-700">{user.name}</td>
+                  <td className="px-4 py-3 text-slate-700">{user.email}</td>
+                  <td className="px-4 py-3 text-slate-500">{user.status}</td>
                   <td className="px-4 py-3 space-x-2">
                     <button
                       onClick={() => act(user.id, "approve")}
@@ -131,7 +131,7 @@ const AdminApprovals = () => {
               ))}
               {!users.length && (
                 <tr>
-                  <td className="px-4 py-3 text-muted" colSpan={4}>
+                  <td className="px-4 py-3 text-slate-500" colSpan={4}>
                     No pending approvals.
                   </td>
                 </tr>
